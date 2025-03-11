@@ -31,12 +31,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        FirebaseApp.initializeApp(this)
         setContent {
             SeniorTravelGuideTheme {
                 MyApp()
@@ -51,12 +53,14 @@ fun MyApp() {
 
     AnimatedNavHost(
         navController = navController,
-        startDestination = "main",
+        startDestination = "splash",
         enterTransition = { fadeIn(animationSpec = tween(0)) },
         exitTransition = { fadeOut(animationSpec = tween(0)) },
         popEnterTransition = { fadeIn(animationSpec = tween(0)) },
         popExitTransition = { fadeOut(animationSpec = tween(0)) }
     ) {
+        composable("splash") { SplashScreen(navController) }
+        composable("login") { LoginScreen(navController) }
         composable("main") { MainScreen(navController) }
     }
 }
@@ -64,13 +68,25 @@ fun MyApp() {
 @Composable
 fun MainScreen(navController: NavHostController) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .systemBarsPadding(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("여행 계획기", fontSize = 50.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(30.dp))
+        Button(onClick = {
+            // Firebase 로그아웃
+            AuthManager.logout()
+            // 로그아웃 후 로그인 화면으로 이동 (기존 스택을 모두 제거)
+            navController.navigate("login") {
+                popUpTo("main") { inclusive = true }
+            }
+        }) {
+            Text("로그아웃")
+        }
+
 
     }
 }

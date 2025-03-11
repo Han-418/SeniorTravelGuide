@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "841024971707",
+    "project_id": "seniortravelguide-d263b",
+    "storage_bucket": "seniortravelguide-d263b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841024971707:android:1683a0defa28e6b1019a9e",
+        "android_client_info": {
+          "package_name": "com.intel.NLPproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDy1CJEr5-kfajm27s8HzuB9DTkIb3baeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

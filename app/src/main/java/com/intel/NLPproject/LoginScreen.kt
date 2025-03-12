@@ -1,13 +1,19 @@
 package com.intel.NLPproject
 
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -20,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +36,7 @@ import com.intel.NLPproject.auth.sendVerificationCode
 import com.intel.NLPproject.auth.verifyCode
 import com.intel.NLPproject.firebase.UserInfoDatabase
 import com.intel.NLPproject.models.UserInfo
+import com.kakao.sdk.user.UserApiClient
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -83,6 +91,26 @@ fun LoginScreen(navController: NavController) {
         }) {
             Text("인증 코드 받기")
         }
+        // 카카오 로그인 성공/실패 처리를 위한 콜백
+        val onKakaoLoginSuccess: (String) -> Unit = { accessToken ->
+            // accessToken을 이용해 서버와 통신하거나, 다음 화면으로 이동하는 로직 작성
+            Log.d("KakaoLogin", "카카오 로그인 성공! AccessToken: $accessToken")
+
+            // 예: 로그인 성공 후 메인 화면으로 이동
+            navController.navigate("main") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+        val onKakaoLoginError: (Throwable) -> Unit = { error ->
+            Log.e("KakaoLogin", "카카오 로그인 실패: ${error.message}")
+            // 에러 메시지 표시 등 처리
+            Toast.makeText(context, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+        }
+
+        KakaoLoginButton(
+            onSuccess = onKakaoLoginSuccess,
+            onError = onKakaoLoginError
+        )
         if (isCodeSent.value) {
             OutlinedTextField(
                 value = otpCode.value,
@@ -186,4 +214,28 @@ fun GenderSelection(gender: MutableState<String>) {
             }
         }
     }
+}
+
+@Composable
+fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
+    val context = LocalContext.current
+
+    Image(
+        painter = painterResource(R.drawable.kakao_login_medium_wide),
+        contentDescription = "kakao login",
+        modifier = Modifier
+            .width(300.dp)
+            .height(50.dp)
+            .clickable {
+                // 카카오톡 앱으로 로그인 시도
+                UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+                    if (error != null) {
+                        onError(error)
+                    } else if (token != null) {
+                        // 로그인 성공, token.accessToken 사용 가능
+                        onSuccess(token.accessToken)
+                    }
+                }
+            }
+    )
 }

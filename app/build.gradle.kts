@@ -69,4 +69,6 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
+    // kakao
+    implementation("com.kakao.sdk:v2-user:2.21.0")
 }

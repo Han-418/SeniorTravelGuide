@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    AnimatedNavHost(
+    NavHost(
         navController = navController,
         startDestination = "splash",
         enterTransition = { fadeIn(animationSpec = tween(0)) },
@@ -176,7 +177,7 @@ fun MainScreen(navController: NavHostController) {
                 navController.navigate("recommendAttraction")
             }
         ) {
-            Text("제출하기")
+            Text("제출하기", fontSize = 28.sp)
         }
         Button(onClick = {
             // Firebase 로그아웃
@@ -186,7 +187,7 @@ fun MainScreen(navController: NavHostController) {
                 popUpTo("main") { inclusive = true }
             }
         }) {
-            Text("로그아웃")
+            Text("로그아웃", fontSize = 28.sp)
         }
     }
 }
@@ -211,22 +212,27 @@ fun DropdownQuestion(
         // 버튼을 누르면 드롭다운 메뉴가 펼쳐짐
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(12.dp)
                 .height(50.dp)
         ) {
-            Text(text = if (selectedOption.value.isEmpty()) question else selectedOption.value, fontSize = 20.sp)
+            Text(
+                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
+                fontSize = 28.sp
+            )
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = offsetX, y = 0.dp),
-            modifier = Modifier.fillMaxWidth(0.9f)
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
                 .background(color = Color.Transparent)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option) },
+                    text = { Text(option, fontSize = 28.sp) },
                     onClick = {
                         selectedOption.value = option
                         expanded = false

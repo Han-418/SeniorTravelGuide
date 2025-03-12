@@ -69,6 +69,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
-    // kakao
+    // kakao login
     implementation("com.kakao.sdk:v2-user:2.21.0")
+    // naver login
+    implementation("com.navercorp.nid:oauth:5.10.0") // jdk 11
 }

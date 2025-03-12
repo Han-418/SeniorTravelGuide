@@ -77,6 +77,7 @@ fun MyApp() {
     ) {
         composable("splash") { SplashScreen(navController) }
         composable("login") { LoginScreen(navController) }
+        composable("phoneLogin") { PhoneLoginScreen(navController) }
         composable("main") { MainScreen(navController) }
         composable("recommendAttraction") { RecommendAttractionScreen(navController) }
         composable("recommendTransportation") { RecommendTransportationScreen(navController) }

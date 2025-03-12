@@ -57,26 +57,23 @@ fun PreferenceCard(onComplete: (String) -> Unit) {
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "취향을 선택해 주세요!", style = MaterialTheme.typography.titleLarge)
+                Text(text = "여행 취향을 선택해 주세요!", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(onClick = { onComplete("힐링") }) {
-                        Text(text = "힐링")
+                    Button(onClick = { onComplete("유유자적") }) {
+                        Text(text = "유유자적(조금만 돌아다님)")
                     }
-                    Button(onClick = { onComplete("문화탐방") }) {
-                        Text(text = "문화탐방")
+                    Button(onClick = { onComplete("과유불급") }) {
+                        Text(text = "과유불급(적당히 돌아다님)")
                     }
-                    Button(onClick = { onComplete("액티비티") }) {
-                        Text(text = "액티비티")
+                    Button(onClick = { onComplete("동분서주") }) {
+                        Text(text = "동분서주(많이 돌아다님)")
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                TextButton(onClick = { onComplete("default") }) {
-                    Text(text = "선택 안 함 (기본 추천)")
-                }
             }
         }
     }

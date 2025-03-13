@@ -90,6 +90,10 @@ fun MyApp() {
         composable("recommendTransportation") { RecommendTransportationScreen(navController) }
         composable("attractionPreference") { AttractionPreferenceScreen(navController) }
         composable("attractionPreference2") { AttractionPreferenceScreen2(navController) }
+        composable("accommodationPreference") { AccommodationPreferenceScreen(navController) }
+        composable("restaurantPreference") { RestaurantPreferenceScreen(navController) }
+        composable("travelTimePreference") { TravelTimePreferenceScreen(navController) }
+        composable("travelPlan") { TravelPlanScreen(navController) }
     }
 }
 

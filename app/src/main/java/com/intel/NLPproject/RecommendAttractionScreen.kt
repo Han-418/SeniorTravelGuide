@@ -173,7 +173,7 @@ fun RecommendAttractionScreen3(navController: NavHostController) {
         // 버튼 영역: 그리드 아래에 전체 너비로 배치
         Button(
             onClick = {
-                navController.navigate("recommendAccommodation")
+                navController.navigate("accommodationPreference")
             },
             modifier = Modifier
                 .fillMaxWidth()

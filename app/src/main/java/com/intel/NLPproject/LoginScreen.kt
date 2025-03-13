@@ -108,6 +108,8 @@ fun PhoneLoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text("전화번호 인증으로 로그인", fontSize = 30.sp)
+        Spacer(modifier = Modifier.height(20.dp))
         // 전화번호 입력 필드 (숫자만, 최대 8자리)
         OutlinedTextField(
             value = phoneNumber.value,

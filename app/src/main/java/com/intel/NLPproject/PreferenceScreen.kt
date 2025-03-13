@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 @Composable
-fun PreferenceScreen(navController: NavHostController) {
+fun AttractionPreferenceScreen(navController: NavHostController) {
     // 원하시는 여행 스타일? (최대 2개 선택)
     val travelStyles = listOf(
         "조용히 쉬는 여행 (자연, 산책 위주)",
@@ -178,7 +178,7 @@ fun PreferenceScreen(navController: NavHostController) {
                 println("사람 많은 곳 vs 조용한 곳: ${selectedPlacePreference.value}")
                 println("피하고 싶은 요소: $selectedAvoids")
                 // 선택된 데이터를 다음 화면이나 처리 로직에 전달합니다.
-                navController.navigate("recommendAttraction")
+                navController.navigate("recommendAttraction2")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {

@@ -83,9 +83,13 @@ fun MyApp() {
         composable("phoneLogin") { PhoneLoginScreen(navController) }
         composable("main") { MainScreen(navController) }
         composable("recommendAttraction") { RecommendAttractionScreen(navController) }
-        composable("recommendTransportation") { RecommendTransportationScreen(navController) }
+        composable("recommendAttraction2") { RecommendAttractionScreen2(navController) }
+        composable("recommendAttraction3") { RecommendAttractionScreen3(navController) }
+        composable("recommendAccommodation") { RecommendAccommodationScreen(navController) }
         composable("recommendRestaurants") { RecommendRestaurantsScreen(navController) }
-        composable("preference") { PreferenceScreen(navController) }
+        composable("recommendTransportation") { RecommendTransportationScreen(navController) }
+        composable("attractionPreference") { AttractionPreferenceScreen(navController) }
+        composable("attractionPreference2") { AttractionPreferenceScreen2(navController) }
     }
 }
 
@@ -148,7 +152,7 @@ fun MainScreen(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.size(10.dp))
-        Text("여행 계획기", fontSize = 50.sp, fontWeight = FontWeight.Bold)
+        Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(30.dp))
 
         // 질문 1: 어디로 가실래요?

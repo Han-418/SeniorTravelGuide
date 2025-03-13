@@ -3,6 +3,7 @@
 package com.intel.NLPproject
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -50,6 +51,8 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
+import com.kakao.sdk.user.UserApiClient
+import com.navercorp.nid.NaverIdLoginSDK
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -192,6 +195,16 @@ fun MainScreen(navController: NavHostController) {
         Button(onClick = {
             // Firebase 로그아웃
             AuthManager.logout()
+            // 카카오 로그아웃
+            UserApiClient.instance.logout { error ->
+                if (error != null) {
+                    Log.e("Kakao", "카카오 로그아웃 실패: $error")
+                } else {
+                    Log.d("Kakao", "카카오 로그아웃 성공")
+                }
+            }
+            // 네이버 로그아웃
+            NaverIdLoginSDK.logout()
             // 로그아웃 후 로그인 화면으로 이동 (기존 스택을 모두 제거)
             navController.navigate("login") {
                 popUpTo("main") { inclusive = true }

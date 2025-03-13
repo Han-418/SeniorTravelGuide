@@ -102,51 +102,39 @@ fun PhoneLoginScreen(navController: NavController) {
     val verificationId = remember { mutableStateOf("") }
     val otpCode = remember { mutableStateOf("") }
     val isCodeSent = remember { mutableStateOf(false) }
-    val name = remember { mutableStateOf("") }
-    val birthDate = remember { mutableStateOf("") }
-    val gender = remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "회원가입", fontSize = 20.sp)
-
+        // 전화번호 입력 필드 (숫자만, 최대 8자리)
         OutlinedTextField(
-            value = name.value,
-            onValueChange = { name.value = it },
-            label = { Text("이름") },
+            value = phoneNumber.value,
+            onValueChange = { newValue ->
+                val digits = newValue.filter { it.isDigit() }
+                phoneNumber.value = if (digits.length > 8) digits.take(8) else digits
+            },
+            label = { Text("전화번호 뒷자리 8개 입력(숫자만)") },
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
             singleLine = true
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = birthDate.value,
-            onValueChange = { birthDate.value = it },
-            label = { Text("생년월일 (YYYYMMDD)") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        // 성별 선택 Radio Button 사용
-        GenderSelection(gender)
-        PhoneNumberInput(phoneNumber)
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        // 로그인 버튼 클릭 인증 코드 발송
         Button(onClick = {
-            val formattedPhoneNumber = formatPhoneNumber(phoneNumber.value)
-            if (formattedPhoneNumber.isNotEmpty()) {
-                sendVerificationCode(
-                    formattedPhoneNumber, // 변환된 전화번호 사용
-                    context, auth, verificationId, isCodeSent
-                )
+            val formattedPhone = formatPhoneNumber(phoneNumber.value)
+            if (formattedPhone.isNotEmpty()) {
+                // 전화번호가 데이터베이스에 있든 없든 항상 OTP 인증 코드 발송
+                sendVerificationCode(formattedPhone, context, auth, verificationId, isCodeSent)
             } else {
                 Log.e("PhoneAuth", "잘못된 전화번호 형식")
             }
         }) {
-            Text("인증 코드 받기")
+            Text("로그인")
         }
+        // OTP 입력 및 인증 코드 확인 UI (OTP 발송 후 표시)
         if (isCodeSent.value) {
             OutlinedTextField(
                 value = otpCode.value,
@@ -165,90 +153,38 @@ fun PhoneLoginScreen(navController: NavController) {
                     navController
                 ) {
                     auth.currentUser?.let { user ->
-                        // 전화번호는 입력값(예: "3333-5678")을 받아서, 저장 시 +8210이 붙은 형식으로 변환
-                        val formattedPhone =
-                            formatPhoneNumber(phoneNumber.value) // 예: "3333-5678" -> "+821033335555"
-
-                        // 유저 정보를 담은 data class 인스턴스를 생성 (UserInfo는 미리 정의된 모델 클래스)
-                        val userInfo = UserInfo(
+                        // 신규 사용자일 경우 최소한 전화번호 정보를 저장
+                        val newUserInfo = UserInfo(
                             uid = user.uid,
-                            name = name.value,
-                            birthDate = birthDate.value,
-                            gender = gender.value,
-                            phoneNumber = formattedPhone
+                            name = "",      // 추가 정보가 필요하면 추후 입력받거나 별도 화면 구현
+                            birthDate = "",
+                            gender = "",
+                            phoneNumber = formatPhoneNumber(phoneNumber.value)
                         )
-
-                        // 유저 정보를 데이터베이스에 저장
-                        UserInfoDatabase().saveUserInfo(userInfo) { success ->
+                        UserInfoDatabase().saveUserInfo(newUserInfo) { success ->
                             if (success) {
-                                Log.d("UserInfo", "User info saved successfully")
+                                Log.d("UserInfo", "유저 정보 저장 성공")
+                                navController.navigate("main")
                             } else {
-                                Log.e("UserInfo", "Failed to save user info")
+                                Log.e("UserInfo", "유저 정보 저장 실패")
                             }
                         }
                     }
                 }
             }) {
-                Text("로그인")
+                Text("인증 코드 확인 및 로그인")
             }
         }
     }
 }
 
-@Composable
-fun PhoneNumberInput(phoneNumber: MutableState<String>) {
-    OutlinedTextField(
-        value = phoneNumber.value,
-        onValueChange = { newValue ->
-            // 숫자만 입력하도록 필터링
-            val digits = newValue.filter { it.isDigit() }
-            // 최대 8자리까지만 입력 가능
-            val limitedDigits = if (digits.length > 8) digits.take(8) else digits
-            // 자동 포맷팅 없이 숫자만 저장
-            phoneNumber.value = limitedDigits
-        },
-        label = { Text("전화번호 뒷자리 8개 입력(숫자만)") },
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-        singleLine = true
-    )
-}
-
+// 입력받은 전화번호를 "+8210XXXXXXX" 형식으로 포맷팅하는 함수
 fun formatPhoneNumber(phoneNumber: String): String {
-    // 숫자만 추출
     val cleanedNumber = phoneNumber.filter { it.isDigit() }
     return if (cleanedNumber.length == 8) {
         "+8210$cleanedNumber"
     } else {
         ""
-    }
-}
-
-@Composable
-fun GenderSelection(gender: MutableState<String>) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "성별 선택", fontSize = 20.sp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(top = 8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = gender.value == "남성",
-                    onClick = { gender.value = "남성" }
-                )
-                Text(text = "남성", modifier = Modifier.padding(start = 4.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = gender.value == "여성",
-                    onClick = { gender.value = "여성" }
-                )
-                Text(text = "여성", modifier = Modifier.padding(start = 4.dp))
-            }
-        }
     }
 }
 
@@ -282,37 +218,42 @@ fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessTo
     // Activity가 아닌 경우 로그인 플로우를 진행할 수 없으므로 반환합니다.
     val activity = context as? Activity ?: return
 
-    Button(onClick = {
-        val oauthLoginCallback = object : OAuthLoginCallback {
-            override fun onSuccess() {
-                // 로그인 성공 시, 액세스 토큰을 가져옵니다.
-                val accessToken = NaverIdLoginSDK.getAccessToken()
-                if (accessToken != null) {
-                    // 성공 시, 추가 작업 (예: 서버에 전달, 상태 업데이트 등)을 실행
-                    onLoginSuccess(accessToken)
-                    // 예: 로그인 성공 후 메인 화면으로 이동
-                    navController.navigate("main") {
-                        popUpTo("login") { inclusive = true }
+    Image(
+        painter = painterResource(R.drawable.naverlogin),
+        contentDescription = "naver login",
+        modifier = Modifier
+            .height(50.dp)
+            .width(300.dp)
+            .clickable {
+                val oauthLoginCallback = object : OAuthLoginCallback {
+                    override fun onSuccess() {
+                        // 로그인 성공 시, 액세스 토큰을 가져옵니다.
+                        val accessToken = NaverIdLoginSDK.getAccessToken()
+                        if (accessToken != null) {
+                            // 성공 시, 추가 작업 (예: 서버에 전달, 상태 업데이트 등)을 실행
+                            onLoginSuccess(accessToken)
+                            // 예: 로그인 성공 후 메인 화면으로 이동
+                            navController.navigate("main") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        } else {
+                            Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                } else {
-                    Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
+
+                    override fun onFailure(httpStatus: Int, message: String) {
+                        val errorCode = NaverIdLoginSDK.getLastErrorCode().code
+                        val errorDescription = NaverIdLoginSDK.getLastErrorDescription()
+                        Toast.makeText(context, "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription", Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onError(errorCode: Int, message: String) {
+                        // onError에서 onFailure를 호출해 동일하게 처리합니다.
+                        onFailure(errorCode, message)
+                    }
                 }
+                // 네이버 로그인 플로우 시작 (Activity를 파라미터로 전달)
+                NaverIdLoginSDK.authenticate(activity, oauthLoginCallback)
             }
-
-            override fun onFailure(httpStatus: Int, message: String) {
-                val errorCode = NaverIdLoginSDK.getLastErrorCode().code
-                val errorDescription = NaverIdLoginSDK.getLastErrorDescription()
-                Toast.makeText(context, "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onError(errorCode: Int, message: String) {
-                // onError에서 onFailure를 호출해 동일하게 처리합니다.
-                onFailure(errorCode, message)
-            }
-        }
-        // 네이버 로그인 플로우 시작 (Activity를 파라미터로 전달)
-        NaverIdLoginSDK.authenticate(activity, oauthLoginCallback)
-    }) {
-        Text(text = "네이버 로그인")
-    }
+    )
 }

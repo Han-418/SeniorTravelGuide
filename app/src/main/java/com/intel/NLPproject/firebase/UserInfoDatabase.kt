@@ -42,4 +42,18 @@ class UserInfoDatabase {
             .addOnCompleteListener { task -> onComplete(task.isSuccessful) }
             .addOnFailureListener { onComplete(false) }
     }
+
+    // 특정 전화번호가 이미 등록되어 있는지 확인하는 함수
+    fun checkUserExists(phoneNumber: String, onResult: (Boolean) -> Unit) {
+        db.get()
+            .addOnSuccessListener { snapshot ->
+                val exists = snapshot.children.any { child ->
+                    child.child("phoneNumber").getValue(String::class.java) == phoneNumber
+                }
+                onResult(exists)
+            }
+            .addOnFailureListener {
+                onResult(false)
+            }
+    }
 }

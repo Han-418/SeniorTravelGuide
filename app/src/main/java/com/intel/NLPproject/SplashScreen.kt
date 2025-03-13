@@ -1,5 +1,6 @@
 package com.intel.NLPproject
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -7,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
@@ -27,48 +29,34 @@ object AuthManager {
 
 @Composable
 fun SplashScreen(navController: NavController) {
-    val user = AuthManager.getCurrentUser()
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        // 1) 카카오 토큰 유효성 검사
-        val isKakaoLoggedIn = checkKakaoToken()
+        // 먼저 FirebaseAuth를 통한 전화번호 로그인(또는 기타 방식) 확인
+        val firebaseUser = AuthManager.getCurrentUser()
+        if (firebaseUser != null) {
+            Toast.makeText(context, "전화번호로 로그인합니다.", Toast.LENGTH_SHORT).show()
+            navController.navigate("main") {
+                popUpTo("splash") { inclusive = true }
+            }
+            return@LaunchedEffect
+        }
 
-        // 2) 네이버 토큰 유효성 검사
+        // Firebase 사용자가 없으면 카카오와 네이버 토큰을 검사
+        val isKakaoLoggedIn = checkKakaoToken()
         val isNaverLoggedIn = checkNaverToken()
 
         if (isKakaoLoggedIn || isNaverLoggedIn) {
-            // 이미 로그인 상태면 메인 화면으로
+            if (isKakaoLoggedIn) {
+                Toast.makeText(context, "카카오로 로그인합니다.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "네이버로 로그인합니다.", Toast.LENGTH_SHORT).show()
+            }
             navController.navigate("main") {
                 popUpTo("splash") { inclusive = true }
             }
         } else {
-            // 로그인이 안 되어 있으면 로그인 화면으로
             navController.navigate("login") {
                 popUpTo("splash") { inclusive = true }
-            }
-        }
-
-        when {
-            user == null -> {
-                // 로그인하지 않은 경우 로그인 화면으로 이동
-                navController.navigate("login") {
-                    popUpTo("splash") { inclusive = true }
-                }
-            }
-
-            user.isAnonymous -> {
-                // 익명 로그인한 경우 자동 로그아웃 후 로그인 화면으로 이동
-                AuthManager.logout()
-                navController.navigate("login") {
-                    popUpTo("splash") { inclusive = true }
-                }
-            }
-
-            else -> {
-                // 정상 로그인한 경우 메인 화면으로 이동
-                navController.navigate("main") {
-                    popUpTo("splash") { inclusive = true }
-                }
             }
         }
     }
@@ -79,6 +67,7 @@ fun SplashScreen(navController: NavController) {
         Text(text = "앱 로딩 중...", fontSize = 20.sp)
     }
 }
+
 suspend fun checkKakaoToken(): Boolean {
     return suspendCoroutine { continuation ->
         // 콜백 기반의 me(...) 호출
@@ -93,6 +82,7 @@ suspend fun checkKakaoToken(): Boolean {
         }
     }
 }
+
 fun checkNaverToken(): Boolean {
     val state = NaverIdLoginSDK.getState()
     // state가 OK 이고, getAccessToken()이 null이 아니면 로그인 유지 상태

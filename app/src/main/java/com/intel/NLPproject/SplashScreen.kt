@@ -35,7 +35,7 @@ fun SplashScreen(navController: NavController) {
         val firebaseUser = AuthManager.getCurrentUser()
         if (firebaseUser != null) {
             Toast.makeText(context, "전화번호로 로그인합니다.", Toast.LENGTH_SHORT).show()
-            navController.navigate("main") {
+            navController.navigate("first") {
                 popUpTo("splash") { inclusive = true }
             }
             return@LaunchedEffect
@@ -51,7 +51,7 @@ fun SplashScreen(navController: NavController) {
             } else {
                 Toast.makeText(context, "네이버로 로그인합니다.", Toast.LENGTH_SHORT).show()
             }
-            navController.navigate("main") {
+            navController.navigate("first") {
                 popUpTo("splash") { inclusive = true }
             }
         } else {

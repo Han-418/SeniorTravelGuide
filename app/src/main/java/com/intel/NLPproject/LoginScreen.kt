@@ -62,7 +62,7 @@ fun LoginScreen(navController: NavHostController) {
             Log.d("KakaoLogin", "카카오 로그인 성공! AccessToken: $accessToken")
 
             // 예: 로그인 성공 후 메인 화면으로 이동
-            navController.navigate("main") {
+            navController.navigate("first") {
                 popUpTo("login") { inclusive = true }
             }
         }
@@ -235,7 +235,7 @@ fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessTo
                             // 성공 시, 추가 작업 (예: 서버에 전달, 상태 업데이트 등)을 실행
                             onLoginSuccess(accessToken)
                             // 예: 로그인 성공 후 메인 화면으로 이동
-                            navController.navigate("main") {
+                            navController.navigate("first") {
                                 popUpTo("login") { inclusive = true }
                             }
                         } else {

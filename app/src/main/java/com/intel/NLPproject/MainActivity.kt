@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -103,6 +105,7 @@ fun MyApp() {
             val destination = backStackEntry.arguments?.getString("destination") ?: ""
             LoadingScreen(navController, destination = destination)
         }
+        composable("first") { FirstScreen(navController) }
     }
 }
 
@@ -156,10 +159,14 @@ fun MainScreen(navController: NavHostController) {
     val selectedTransportation = remember { mutableStateOf("") }
     val selectedBudget = remember { mutableStateOf("") }
 
+    // currentStep -> 1 : destination, 2 : travel period, 3 : companion, 4 : transportation, 5 : budget
+    var currentStep by remember { mutableIntStateOf(1) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
+            .padding(start = 10.dp, end = 10.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -168,65 +175,104 @@ fun MainScreen(navController: NavHostController) {
         Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(30.dp))
 
-        // 질문 1: 어디로 가실래요?
-        CascadingDropdownQuestion(
-            question = "어디로 가실래요?",
-            options = destinationOptions,
-            subOptionsMap = subregionOptionsMap,
-            selectedOption = selectedDestination
-        )
-
-        // 질문 2: 여행 기간은 몇 박 몇 일로 생각하세요?
-        DropdownQuestion(
-            question = "여행 기간은 어떻게 되시나요?",
-            options = travelPeriodOptions,
-            selectedOption = selectedTravelPeriod
-        )
-        // 질문 3: 누구와 함께 가세요?
-        DropdownQuestion(
-            question = "누구와 함께 가세요?",
-            options = companionOptions,
-            selectedOption = selectedCompanion
-        )
-        // 질문 4: 이동 방법은?
-        DropdownQuestion(
-            question = "이동 방법은?",
-            options = transportationOptions,
-            selectedOption = selectedTransportation
-        )
-        // 질문 5: 예산은 어느 정도 생각하세요?
-        DropdownQuestion(
-            question = "예산은 어느 정도 생각하세요?",
-            options = budgetOptions,
-            selectedOption = selectedBudget
-        )
-        Spacer(modifier = Modifier.size(30.dp))
-        Button(
-            onClick = {
-                navController.navigate("loading/recommendAttraction")
+        // 현재 단계에 따라 다른 질문 표시
+        when (currentStep) {
+            1 -> {
+                Text("어디로\n가실래요?", fontSize = 50.sp, lineHeight = 55.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+                CascadingDropdownQuestion(
+                    question = "어디로 가실래요?",
+                    options = destinationOptions,
+                    subOptionsMap = subregionOptionsMap,
+                    selectedOption = selectedDestination
+                )
             }
-        ) {
-            Text("제출하기")
+
+            2 -> {
+                Text("여행\n기간은 어떻게 되시나요?", fontSize = 50.sp, lineHeight = 55.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+                DropdownQuestion(
+                    question = "여행 기간은 어떻게 되시나요?",
+                    options = travelPeriodOptions,
+                    selectedOption = selectedTravelPeriod
+                )
+            }
+
+            3 -> {
+                Text("누구와 함께\n가세요?", fontSize = 50.sp, lineHeight = 55.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+                DropdownQuestion(
+                    question = "누구와 함께 가세요?",
+                    options = companionOptions,
+                    selectedOption = selectedCompanion
+                )
+            }
+
+            4 -> {
+                Text("이동 방법은?", fontSize = 50.sp, lineHeight = 55.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+                DropdownQuestion(
+                    question = "이동 방법은?",
+                    options = transportationOptions,
+                    selectedOption = selectedTransportation
+                )
+            }
+
+            5 -> {
+                Text("예산은\n어느 정도 생각하세요?", fontSize = 50.sp, lineHeight = 55.sp)
+                Spacer(modifier = Modifier.height(20.dp))
+                DropdownQuestion(
+                    question = "예산은 어느 정도 생각하세요?",
+                    options = budgetOptions,
+                    selectedOption = selectedBudget
+                )
+            }
         }
-        Button(onClick = {
-            // Firebase 로그아웃
-            AuthManager.logout()
-            // 카카오 로그아웃
-            UserApiClient.instance.logout { error ->
-                if (error != null) {
-                    Log.e("Kakao", "카카오 로그아웃 실패: $error")
-                } else {
-                    Log.d("Kakao", "카카오 로그아웃 성공")
+        Spacer(modifier = Modifier.size(30.dp))
+
+        Row {
+            if (currentStep > 1) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { currentStep-- }) {
+                    Text("이전")
                 }
             }
-            // 네이버 로그아웃
-            NaverIdLoginSDK.logout()
-            // 로그아웃 후 로그인 화면으로 이동 (기존 스택을 모두 제거)
-            navController.navigate("login") {
-                popUpTo("main") { inclusive = true }
+
+            Button(onClick = {
+                // Firebase 로그아웃
+                AuthManager.logout()
+                // 카카오 로그아웃
+                UserApiClient.instance.logout { error ->
+                    if (error != null) {
+                        Log.e("Kakao", "카카오 로그아웃 실패: $error")
+                    } else {
+                        Log.d("Kakao", "카카오 로그아웃 성공")
+                    }
+                }
+                // 네이버 로그아웃
+                NaverIdLoginSDK.logout()
+                // 로그아웃 후 로그인 화면으로 이동 (기존 스택을 모두 제거)
+                navController.navigate("login") {
+                    popUpTo("main") { inclusive = true }
+                }
+            }) {
+                Text("로그아웃")
             }
-        }) {
-            Text("로그아웃")
+            // "다음" 혹은 "제출하기" 버튼 처리
+            if (currentStep < 5) {
+                Button(onClick = { currentStep++ }) {
+                    Text("다음")
+                }
+            } else {
+                Button(
+                    onClick = {
+                        // 모든 질문에 대한 선택이 완료되었으므로 결과 페이지로 이동
+                        navController.navigate("loading/recommendAttraction")
+                    }
+                ) {
+                    Text("제출하기")
+                }
+            }
         }
     }
 }
@@ -251,17 +297,22 @@ fun DropdownQuestion(
         // 버튼을 누르면 드롭다운 메뉴가 펼쳐짐
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(12.dp)
                 .height(50.dp)
         ) {
-            Text(text = if (selectedOption.value.isEmpty()) question else selectedOption.value, fontSize = 20.sp)
+            Text(
+                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
+                fontSize = 20.sp
+            )
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = offsetX, y = 0.dp),
-            modifier = Modifier.fillMaxWidth(0.9f)
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
                 .background(color = Color.Transparent)
         ) {
             options.forEach { option ->

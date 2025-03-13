@@ -63,7 +63,7 @@ fun verifyCode(
             if (task.isSuccessful) {
                 Log.d("PhoneAuth", "로그인 성공!")
                 onSuccess()
-                navController.navigate("main") {
+                navController.navigate("first") {
                     popUpTo("login") { inclusive = true }
                 }
             } else {

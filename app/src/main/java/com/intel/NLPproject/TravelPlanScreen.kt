@@ -13,7 +13,7 @@ fun TravelPlanScreen(navController: NavHostController) {
         Text("최종 계획", fontSize = 32.sp)
         Button(
             onClick = {
-                navController.navigate("main")
+                navController.navigate("first")
             }
         ) {
             Text("메인화면으로")

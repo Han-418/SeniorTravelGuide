@@ -12,8 +12,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
+// 데이터 클래스는 WebCrawlApiService.kt에 정의되어 있음
+// data class WebCrawlResponse(val query: String, val results: List<CrawlResult>)
+// data class CrawlResult(val title: String, val description: String)
+
 @Composable
 fun RecommendAttractionScreen(navController: NavHostController) {
+    // API 호출을 통해 받아온 관광지 데이터를 저장하는 상태
     // Repository를 이용해 기본 쿼리(DEFAULT_QUERY)를 사용하여 관광지 데이터를 가져옴
     val attractionsState by produceState<List<CrawlResult>>(initialValue = emptyList()) {
         val repository = WebCrawlRepository()

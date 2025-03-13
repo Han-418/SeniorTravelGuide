@@ -20,10 +20,8 @@ fun LoadingScreen(
 ) {
     LaunchedEffect(key1 = destination) {
         delay(loadingDelay)
-        navController.navigate(destination) {
-            // 기존 화면 스택을 정리하거나 popUpTo 옵션을 추가할 수 있음
-            popUpTo(destination) { inclusive = true }
-        }
+        navController.popBackStack() // 현재 로딩 화면 제거
+        navController.navigate(destination)
     }
 
     Box(

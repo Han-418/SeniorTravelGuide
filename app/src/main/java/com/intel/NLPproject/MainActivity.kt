@@ -77,6 +77,7 @@ fun MyApp() {
     ) {
         composable("splash") { SplashScreen(navController) }
         composable("login") { LoginScreen(navController) }
+        composable("phoneLogin") { PhoneLoginScreen(navController) }
         composable("main") { MainScreen(navController) }
         composable("recommendAttraction") { RecommendAttractionScreen(navController) }
         composable("recommendTransportation") { RecommendTransportationScreen(navController) }
@@ -121,6 +122,13 @@ fun MainScreen(navController: NavHostController) {
         "평균적으로",
         "가격 상관없음"
     )
+    val subregionOptionsMap = mapOf(
+        "부산 / 경상권" to listOf("부산", "대구", "울산"),
+        "강원도" to listOf("강릉", "속초", "원주"),
+        "제주도" to listOf("제주시", "서귀포시"),
+        "전라도" to listOf("전주", "광주", "순천", "여수"),
+        "충청도" to listOf("대전", "청주", "천안")
+    )
     // 각 질문의 선택 상태
     val selectedDestination = remember { mutableStateOf("") }
     val selectedTravelPeriod = remember { mutableStateOf("") }
@@ -141,11 +149,13 @@ fun MainScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(30.dp))
 
         // 질문 1: 어디로 가실래요?
-        DropdownQuestion(
+        CascadingDropdownQuestion(
             question = "어디로 가실래요?",
             options = destinationOptions,
+            subOptionsMap = subregionOptionsMap,
             selectedOption = selectedDestination
         )
+
         // 질문 2: 여행 기간은 몇 박 몇 일로 생각하세요?
         DropdownQuestion(
             question = "여행 기간은 어떻게 되시나요?",
@@ -230,6 +240,82 @@ fun DropdownQuestion(
                     onClick = {
                         selectedOption.value = option
                         expanded = false
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = Color.Black
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CascadingDropdownQuestion(
+    question: String,
+    options: List<String>,
+    subOptionsMap: Map<String, List<String>>,
+    selectedOption: MutableState<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+    // currentOptions: 현재 보여줄 옵션 목록. 초기에는 전체 옵션이 들어감.
+    var currentOptions by remember { mutableStateOf(options) }
+    // currentParent: 만약 세부지역 메뉴로 전환된 경우, 상위(부모) 지역을 저장.
+    var currentParent by remember { mutableStateOf<String?>(null) }
+
+    // 화면 너비 계산(드롭다운 중앙 정렬용)
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val menuWidth = screenWidth * 0.9f
+    val offsetX = (screenWidth - menuWidth) / 2
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // 드롭다운을 여는 버튼
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .height(50.dp)
+        ) {
+            Text(
+                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
+                fontSize = 20.sp
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+                // 드롭다운이 닫힐 때 초기 상태로 복귀
+                currentOptions = options
+                currentParent = null
+            },
+            offset = DpOffset(x = offsetX, y = 0.dp),
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .background(color = Color.Transparent)
+        ) {
+            currentOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        // 만약 아직 상위 옵션이 선택되지 않았고, 선택한 옵션에 세부지역이 있다면
+                        if (currentParent == null && subOptionsMap.containsKey(option)) {
+                            currentParent = option
+                            currentOptions = subOptionsMap[option] ?: emptyList()
+                        } else {
+                            // 최종 선택: 상위 옵션이 있다면 "상위: 하위" 형태로, 그렇지 않으면 단일 값
+                            selectedOption.value = if (currentParent != null) {
+                                "$currentParent: $option"
+                            } else {
+                                option
+                            }
+                            // 선택 완료 후 상태 초기화
+                            currentOptions = options
+                            currentParent = null
+                            expanded = false
+                        }
                     },
                     colors = MenuDefaults.itemColors(
                         textColor = Color.Black

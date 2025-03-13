@@ -11,29 +11,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.launch
-
-// 데이터 클래스는 WebCrawlApiService.kt에 정의되어 있음
-// data class WebCrawlResponse(val query: String, val results: List<CrawlResult>)
-// data class CrawlResult(val title: String, val description: String)
 
 @Composable
 fun RecommendAttractionScreen(navController: NavHostController) {
-    // API 호출을 통해 받아온 관광지 데이터를 저장하는 상태
+    // Repository를 이용해 기본 쿼리(DEFAULT_QUERY)를 사용하여 관광지 데이터를 가져옴
     val attractionsState by produceState<List<CrawlResult>>(initialValue = emptyList()) {
-        // 기본 검색어는 "제주도 관광지"로 호출 (필요에 따라 변경 가능)
-        val response = RetrofitClient.apiService.getCrawledData(query = "제주도 관광지")
-        if (response.isSuccessful) {
-            value = response.body()?.results ?: emptyList()
+        val repository = WebCrawlRepository()
+        val result = repository.fetchCrawledData(query = DEFAULT_QUERY)
+        if (result.isSuccess) {
+            value = result.getOrNull()?.results ?: emptyList()
         } else {
-            // API 호출 실패 시 빈 리스트 또는 에러 처리 로직 추가
+            // 에러 발생 시 빈 리스트로 처리하거나 에러 메시지 등 추가 로직 구현 가능
             value = emptyList()
         }
     }
 
-    // 사용자가 선택한 관광지 리스트 (제목만 저장)
+    // 사용자가 선택한 관광지 목록 (각 항목의 title을 저장)
     val selectedAttractions = remember { mutableStateListOf<String>() }
-    // 스크롤 가능한 리스트를 위해 LazyColumn 사용
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,6 +40,7 @@ fun RecommendAttractionScreen(navController: NavHostController) {
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
+        // LazyColumn을 사용해 스크롤 가능한 리스트로 출력
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(attractionsState) { attraction ->
                 Row(
@@ -70,7 +66,7 @@ fun RecommendAttractionScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                // 선택된 관광지 목록 출력 혹은 다음 화면으로 전달
+                // 선택된 관광지 목록을 처리하거나 다음 화면으로 전달하는 로직 구현
                 println("선택된 관광지: $selectedAttractions")
                 // 예: navController.navigate("다음화면")
             },

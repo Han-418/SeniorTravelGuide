@@ -45,8 +45,10 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
@@ -94,6 +96,13 @@ fun MyApp() {
         composable("restaurantPreference") { RestaurantPreferenceScreen(navController) }
         composable("travelTimePreference") { TravelTimePreferenceScreen(navController) }
         composable("travelPlan") { TravelPlanScreen(navController) }
+        composable(
+            route = "loading/{destination}",
+            arguments = listOf(navArgument("destination") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val destination = backStackEntry.arguments?.getString("destination") ?: ""
+            LoadingScreen(navController, destination = destination)
+        }
     }
 }
 
@@ -194,7 +203,7 @@ fun MainScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.size(30.dp))
         Button(
             onClick = {
-                navController.navigate("recommendAttraction")
+                navController.navigate("loading/recommendAttraction")
             }
         ) {
             Text("제출하기")

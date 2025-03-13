@@ -178,7 +178,7 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                 println("사람 많은 곳 vs 조용한 곳: ${selectedPlacePreference.value}")
                 println("피하고 싶은 요소: $selectedAvoids")
                 // 선택된 데이터를 다음 화면이나 처리 로직에 전달합니다.
-                navController.navigate("recommendAttraction2")
+                navController.navigate("loading/recommendAttraction2")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
@@ -336,7 +336,7 @@ fun AttractionPreferenceScreen2(navController: NavHostController) {
                 println("날씨 대비: ${selectedWeatherOption.value}")
 
                 // 선택 데이터를 다음 화면으로 전달하거나 처리 로직 구현
-                navController.navigate("recommendAttraction3")
+                navController.navigate("loading/recommendAttraction3")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
@@ -502,7 +502,7 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                 println("이동 거리: ${selectedTravelDistance.value}")
                 println("부가 시설: $selectedAdditionalFacilities")
                 // 결과 데이터를 다음 화면 또는 추천 로직에 전달
-                navController.navigate("recommendAccommodation")
+                navController.navigate("loading/recommendAccommodation")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
@@ -676,7 +676,7 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                 println("대기 시간 고려: ${selectedWaitingTimeOption.value}")
                 println("특수 조건: $selectedSpecialConditions")
                 // 선택 데이터를 다음 화면이나 추천 로직에 전달합니다.
-                navController.navigate("recommendRestaurants")
+                navController.navigate("loading/recommendRestaurants")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
@@ -767,7 +767,7 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
                 println("여행 시작 시간: ${selectedStartTime.value}")
                 println("여행 종료 시간: ${selectedEndTime.value}")
                 // 다음 화면 또는 추천 로직으로 내비게이션
-                navController.navigate("travelPlan")
+                navController.navigate("loading/travelPlan")
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {

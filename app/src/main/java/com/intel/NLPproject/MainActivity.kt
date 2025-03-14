@@ -11,6 +11,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,11 +45,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
@@ -176,141 +185,143 @@ fun MainScreen(navController: NavHostController) {
         else -> false
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(start = 10.dp, end = 10.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.size(10.dp))
-        Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(30.dp))
+    ZoomableContent {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .padding(start = 10.dp, end = 10.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.size(10.dp))
+            Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(30.dp))
 
-        // 현재 단계에 따라 다른 질문 표시
-        when (currentStep) {
-            1 -> {
-                Text("어디로\n가실래요?", fontSize = 50.sp, lineHeight = 55.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-                CascadingDropdownQuestion(
-                    question = "지역을 선택해주세요",
-                    options = destinationOptions,
-                    subOptionsMap = subregionOptionsMap,
-                    selectedOption = selectedDestination,
-                    onOptionSelected = { option ->
-                        selectedDestination.value = option
-                        // 직접 입력 옵션 선택 시 다이얼로그 활성화
-                        if (option == "직접 입력할래요!") {
-                            showCustomInputDialog.value = true
-                        }
-                    }
-
-                )
-                // "직접 입력할래요!" 선택 시 나타나는 입력 다이얼로그
-                if (showCustomInputDialog.value) {
-                    AlertDialog(
-                        onDismissRequest = { showCustomInputDialog.value = false },
-                        title = { Text("목적지 직접 입력") },
-                        text = {
-                            Column {
-                                Text("여행 가고 싶은 곳을 입력하세요:")
-                                OutlinedTextField(
-                                    value = customDestinationInput.value,
-                                    onValueChange = { customDestinationInput.value = it },
-                                    placeholder = { Text("예: 서울, 부산, 제주 등") }
-                                )
+            // 현재 단계에 따라 다른 질문 표시
+            when (currentStep) {
+                1 -> {
+                    Text("어디로\n가실래요?", fontSize = 50.sp, lineHeight = 55.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    CascadingDropdownQuestion(
+                        question = "지역을 선택해주세요",
+                        options = destinationOptions,
+                        subOptionsMap = subregionOptionsMap,
+                        selectedOption = selectedDestination,
+                        onOptionSelected = { option ->
+                            selectedDestination.value = option
+                            // 직접 입력 옵션 선택 시 다이얼로그 활성화
+                            if (option == "직접 입력할래요!") {
+                                showCustomInputDialog.value = true
                             }
-                        },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
-                                    selectedDestination.value = customDestinationInput.value
-                                    showCustomInputDialog.value = false
+                        }
+
+                    )
+                    // "직접 입력할래요!" 선택 시 나타나는 입력 다이얼로그
+                    if (showCustomInputDialog.value) {
+                        AlertDialog(
+                            onDismissRequest = { showCustomInputDialog.value = false },
+                            title = { Text("목적지 직접 입력") },
+                            text = {
+                                Column {
+                                    Text("여행 가고 싶은 곳을 입력하세요:")
+                                    OutlinedTextField(
+                                        value = customDestinationInput.value,
+                                        onValueChange = { customDestinationInput.value = it },
+                                        placeholder = { Text("예: 서울, 부산, 제주 등") }
+                                    )
                                 }
-                            ) {
-                                Text("확인")
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
+                                        selectedDestination.value = customDestinationInput.value
+                                        showCustomInputDialog.value = false
+                                    }
+                                ) {
+                                    Text("확인")
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = { showCustomInputDialog.value = false }
+                                ) {
+                                    Text("취소")
+                                }
                             }
-                        },
-                        dismissButton = {
-                            Button(
-                                onClick = { showCustomInputDialog.value = false }
-                            ) {
-                                Text("취소")
-                            }
-                        }
+                        )
+                    }
+                }
+
+                2 -> {
+                    Text("여행\n기간은 어떻게 되시나요?", fontSize = 50.sp, lineHeight = 55.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    DropdownQuestion(
+                        question = "여행 기간을 선택해주세요",
+                        options = travelPeriodOptions,
+                        selectedOption = selectedTravelPeriod
+                    )
+                }
+
+                3 -> {
+                    Text("누구와 함께\n가세요?", fontSize = 50.sp, lineHeight = 55.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    DropdownQuestion(
+                        question = "함께 가시는 분을 선택해주세요",
+                        options = companionOptions,
+                        selectedOption = selectedCompanion
+                    )
+                }
+
+                4 -> {
+                    Text("이동 방법은?", fontSize = 50.sp, lineHeight = 55.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    DropdownQuestion(
+                        question = "원하는 교통수단을 선택해주세요",
+                        options = transportationOptions,
+                        selectedOption = selectedTransportation
+                    )
+                }
+
+                5 -> {
+                    Text("예산은\n어느 정도 생각하세요?", fontSize = 50.sp, lineHeight = 55.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    DropdownQuestion(
+                        question = "예산을 선택해주세요",
+                        options = budgetOptions,
+                        selectedOption = selectedBudget
                     )
                 }
             }
+            Spacer(modifier = Modifier.size(30.dp))
 
-            2 -> {
-                Text("여행\n기간은 어떻게 되시나요?", fontSize = 50.sp, lineHeight = 55.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-                DropdownQuestion(
-                    question = "여행 기간을 선택해주세요",
-                    options = travelPeriodOptions,
-                    selectedOption = selectedTravelPeriod
-                )
-            }
-
-            3 -> {
-                Text("누구와 함께\n가세요?", fontSize = 50.sp, lineHeight = 55.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-                DropdownQuestion(
-                    question = "함께 가시는 분을 선택해주세요",
-                    options = companionOptions,
-                    selectedOption = selectedCompanion
-                )
-            }
-
-            4 -> {
-                Text("이동 방법은?", fontSize = 50.sp, lineHeight = 55.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-                DropdownQuestion(
-                    question = "원하는 교통수단을 선택해주세요",
-                    options = transportationOptions,
-                    selectedOption = selectedTransportation
-                )
-            }
-
-            5 -> {
-                Text("예산은\n어느 정도 생각하세요?", fontSize = 50.sp, lineHeight = 55.sp)
-                Spacer(modifier = Modifier.height(20.dp))
-                DropdownQuestion(
-                    question = "예산을 선택해주세요",
-                    options = budgetOptions,
-                    selectedOption = selectedBudget
-                )
-            }
-        }
-        Spacer(modifier = Modifier.size(30.dp))
-
-        Row {
-            if (currentStep > 1) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { currentStep-- }) {
-                    Text("이전")
-                }
-            }
-
-            LogoutButton(navController)            // "다음" 혹은 "제출하기" 버튼 처리
-            if (currentStep < 5) {
-                Button(
-                    onClick = { currentStep++ },
-                    enabled = isCurrentStepAnswered
-                ) {
-                    Text("다음")
-                }
-            } else {
-                Button(
-                    onClick = {
-                        // 모든 질문에 대한 선택이 완료되었으므로 결과 페이지로 이동
-                        navController.navigate("loading/recommendAttraction")
+            Row {
+                if (currentStep > 1) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { currentStep-- }) {
+                        Text("이전")
                     }
-                ) {
-                    Text("제출하기")
+                }
+
+                LogoutButton(navController)            // "다음" 혹은 "제출하기" 버튼 처리
+                if (currentStep < 5) {
+                    Button(
+                        onClick = { currentStep++ },
+                        enabled = isCurrentStepAnswered
+                    ) {
+                        Text("다음")
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            // 모든 질문에 대한 선택이 완료되었으므로 결과 페이지로 이동
+                            navController.navigate("loading/recommendAttraction")
+                        }
+                    ) {
+                        Text("제출하기")
+                    }
                 }
             }
         }
@@ -461,5 +472,50 @@ fun LogoutButton(navController: NavController) {
         }
     }) {
         Text("로그아웃")
+    }
+}
+
+@Composable
+fun ZoomableContent(content: @Composable () -> Unit) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+    val minScale = 1f
+    val maxScale = 1.5f
+    // 제한 계수: 0.3f이면 최대 이동 범위의 30%까지만 이동할 수 있음
+    val restrictionFactor = 0.7f
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coordinates ->
+                containerSize = coordinates.size
+            }
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, zoom, _ ->
+                    val newScale = (scale * zoom).coerceIn(minScale, maxScale)
+                    scale = newScale
+
+                    // 기존 offset에 pan 추가
+                    offset += pan
+
+                    // 원래 최대 이동 범위 계산
+                    val maxOffsetX = ((containerSize.width * scale) - containerSize.width) / 2f
+                    val maxOffsetY = ((containerSize.height * scale) - containerSize.height) / 2f
+                    // 제한 계수를 곱해 더 엄격하게 제한
+                    offset = Offset(
+                        x = offset.x.coerceIn(-maxOffsetX * restrictionFactor, maxOffsetX * restrictionFactor),
+                        y = offset.y.coerceIn(-maxOffsetY * restrictionFactor, maxOffsetY * restrictionFactor)
+                    )
+                }
+            }
+            .graphicsLayer {
+                translationX = offset.x
+                translationY = offset.y
+                scaleX = scale
+                scaleY = scale
+            }
+    ) {
+        content()
     }
 }

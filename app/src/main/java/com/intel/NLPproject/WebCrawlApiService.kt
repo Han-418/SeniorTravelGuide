@@ -5,10 +5,9 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface WebCrawlApiService {
-    // 예시 엔드포인트: /crawl?query=제주도+관광지
     @GET("crawl")
     suspend fun getCrawledData(
-        @Query("query") query: String = "제주도 관광지"
+        @Query("query") query: String = DEFAULT_QUERY
     ): Response<WebCrawlResponse>
 }
 

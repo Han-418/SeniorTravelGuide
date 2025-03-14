@@ -64,8 +64,18 @@ fun SplashScreen(navController: NavController) {
                     if (userInfo != null) {
                         // 메시지는 stable UID의 접두어를 확인하여 결정
                         when {
-                            currentUserKey.startsWith("kakao_") -> Toast.makeText(context, "카카오로 로그인합니다.", Toast.LENGTH_SHORT).show()
-                            currentUserKey.startsWith("naver_") -> Toast.makeText(context, "네이버로 로그인합니다.", Toast.LENGTH_SHORT).show()
+                            currentUserKey.startsWith("kakao_") -> Toast.makeText(
+                                context,
+                                "카카오로 로그인합니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                            currentUserKey.startsWith("naver_") -> Toast.makeText(
+                                context,
+                                "네이버로 로그인합니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
                             else -> Toast.makeText(context, "소셜 로그인", Toast.LENGTH_SHORT).show()
                         }
                         navController.navigate("first") {

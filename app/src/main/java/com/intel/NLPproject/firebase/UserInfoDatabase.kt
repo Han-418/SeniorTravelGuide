@@ -38,6 +38,7 @@ class UserInfoDatabase {
                 onComplete(null)
             }
     }
+
     // 특정 사용자 정보를 삭제 (UID로 삭제)
     fun deleteUserInfo(uid: String, onComplete: (Boolean) -> Unit) {
         db.child(uid).removeValue()

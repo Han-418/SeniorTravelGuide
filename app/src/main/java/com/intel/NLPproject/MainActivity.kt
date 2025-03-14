@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -148,11 +149,11 @@ fun MainScreen(navController: NavHostController) {
         "가격 상관없음"
     )
     val subregionOptionsMap = mapOf(
-        "경상도" to listOf("부산", "대구", "울산", "김해", "거제", "통영", "남해", "포항", "경주", "안동"),
-        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "횡성", "평창", "양양"),
-        "제주도" to listOf("제주시", "서귀포시"),
-        "전라도" to listOf("전주", "광주", "순천", "여수", "임실", "순창", "나주", "목포", "곡성", "보성", "신안"),
-        "충청도" to listOf("대전", "청주", "천안", "공주", "논산", "보령", "괴산", "청양")
+        "경상도" to listOf("부산", "대구", "울산", "남해", "포항", "경주", "안동"),
+        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "평창", "양양"),
+        "제주도" to listOf("제주시", "애월읍", "한림읍", "우도면", "서귀포시", "안덕면", "성산읍"),
+        "전라도" to listOf("전주", "광주", "순천", "여수", "목포", "곡성", "신안"),
+        "충청도" to listOf("대전", "청주", "천안", "공주", "논산", "보령", "괴산")
     )
     // 각 질문의 선택 상태
     val selectedDestination = remember { mutableStateOf("") }
@@ -412,7 +413,8 @@ fun CascadingDropdownQuestion(
                 currentOptions = options
                 currentParent = null
             },
-            offset = DpOffset(x = offsetX, y = 0.dp),
+            offset = DpOffset(x = offsetX, y = 141.dp),
+            properties = PopupProperties(clippingEnabled = false),
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .background(color = Color.Transparent)

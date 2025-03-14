@@ -38,7 +38,10 @@ fun sendVerificationCode(
                 Log.e("PhoneAuth", "인증 실패: ${e.message}")
             }
 
-            override fun onCodeSent(verificationIdReceived: String, token: PhoneAuthProvider.ForceResendingToken) {
+            override fun onCodeSent(
+                verificationIdReceived: String,
+                token: PhoneAuthProvider.ForceResendingToken
+            ) {
                 verificationId.value = verificationIdReceived
                 isCodeSent.value = true
                 Log.d("PhoneAuth", "인증 코드 전송됨!")

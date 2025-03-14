@@ -45,6 +45,7 @@ fun FirstScreen(navController: NavHostController) {
         ShowCurrentUserButton()
     }
 }
+
 @Composable
 fun ShowCurrentUserButton() {
     val context = LocalContext.current

@@ -250,7 +250,10 @@ fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) 
 }
 
 @Composable
-fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessToken: String) -> Unit = {}) {
+fun NaverLoginButton(
+    navController: NavHostController,
+    onLoginSuccess: (accessToken: String) -> Unit = {}
+) {
     val context = LocalContext.current
     val activity = context as? Activity ?: return
 
@@ -289,15 +292,27 @@ fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessTo
                                                 popUpTo("login") { inclusive = true }
                                             }
                                         } else {
-                                            Toast.makeText(context, "사용자 정보 저장 실패", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "사용자 정보 저장 실패",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
                                 } else {
-                                    Toast.makeText(context, "네이버 사용자 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "네이버 사용자 정보를 불러오지 못했습니다.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         } else {
-                            Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "네이버 로그인 성공했지만 액세스 토큰이 없습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
 
@@ -338,7 +353,8 @@ fun fetchNaverUserInfo(accessToken: String, onResult: (id: String?, name: String
                 // 예시 응답: { "resultcode": "00", "message": "success", "response": { "id": "12345", "name": "실제 이름", ... } }
                 val responseObj = json.optJSONObject("response")
                 val id = responseObj?.optString("id")
-                val name = responseObj?.optString("name") ?: responseObj?.optString("nickname") ?: "Naver User"
+                val name = responseObj?.optString("name") ?: responseObj?.optString("nickname")
+                ?: "Naver User"
                 onResult(id, name)
             } else {
                 onResult(null, null)

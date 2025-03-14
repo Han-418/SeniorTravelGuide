@@ -3,7 +3,6 @@
 package com.intel.NLPproject
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,11 +24,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -42,10 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -54,8 +57,6 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
-import com.kakao.sdk.user.UserApiClient
-import com.navercorp.nid.NaverIdLoginSDK
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,15 +64,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         FirebaseApp.initializeApp(this)
         setContent {
+            val navController = rememberNavController()
             SeniorTravelGuideTheme {
-                MyApp()
+                MyApp(navController)
             }
         }
     }
 }
 
 @Composable
-fun MyApp() {
+fun MyApp(navController: NavHostController) {
     val navController = rememberNavController()
 
     AnimatedNavHost(
@@ -113,8 +115,8 @@ fun MyApp() {
 fun MainScreen(navController: NavHostController) {
     // 각 질문별 옵션 목록
     val destinationOptions = listOf(
-        "근교 (차로 1~2시간)",
-        "부산 / 경상권",
+        "직접 입력할래요!",
+        "경상도",
         "강원도",
         "제주도",
         "전라도",
@@ -146,11 +148,11 @@ fun MainScreen(navController: NavHostController) {
         "가격 상관없음"
     )
     val subregionOptionsMap = mapOf(
-        "부산 / 경상권" to listOf("부산", "대구", "울산"),
-        "강원도" to listOf("강릉", "속초", "원주"),
+        "경상도" to listOf("부산", "대구", "울산", "김해", "거제", "통영", "남해", "포항", "경주", "안동"),
+        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "횡성", "평창", "양양"),
         "제주도" to listOf("제주시", "서귀포시"),
-        "전라도" to listOf("전주", "광주", "순천", "여수"),
-        "충청도" to listOf("대전", "청주", "천안")
+        "전라도" to listOf("전주", "광주", "순천", "여수", "임실", "순창", "나주", "목포", "곡성", "보성", "신안"),
+        "충청도" to listOf("대전", "청주", "천안", "공주", "논산", "보령", "괴산", "청양")
     )
     // 각 질문의 선택 상태
     val selectedDestination = remember { mutableStateOf("") }
@@ -158,9 +160,20 @@ fun MainScreen(navController: NavHostController) {
     val selectedCompanion = remember { mutableStateOf("") }
     val selectedTransportation = remember { mutableStateOf("") }
     val selectedBudget = remember { mutableStateOf("") }
-
+    // 직접 입력 다이얼로그를 위한 상태
+    val showCustomInputDialog = remember { mutableStateOf(false) }
+    val customDestinationInput = remember { mutableStateOf("") }
     // currentStep -> 1 : destination, 2 : travel period, 3 : companion, 4 : transportation, 5 : budget
     var currentStep by remember { mutableIntStateOf(1) }
+    // 현재 단계에서 답변이 선택되었는지 확인
+    val isCurrentStepAnswered = when (currentStep) {
+        1 -> selectedDestination.value.isNotEmpty()
+        2 -> selectedTravelPeriod.value.isNotEmpty()
+        3 -> selectedCompanion.value.isNotEmpty()
+        4 -> selectedTransportation.value.isNotEmpty()
+        5 -> selectedBudget.value.isNotEmpty()
+        else -> false
+    }
 
     Column(
         modifier = Modifier
@@ -181,18 +194,61 @@ fun MainScreen(navController: NavHostController) {
                 Text("어디로\n가실래요?", fontSize = 50.sp, lineHeight = 55.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 CascadingDropdownQuestion(
-                    question = "어디로 가실래요?",
+                    question = "지역을 선택해주세요",
                     options = destinationOptions,
                     subOptionsMap = subregionOptionsMap,
-                    selectedOption = selectedDestination
+                    selectedOption = selectedDestination,
+                    onOptionSelected = { option ->
+                        selectedDestination.value = option
+                        // 직접 입력 옵션 선택 시 다이얼로그 활성화
+                        if (option == "직접 입력할래요!") {
+                            showCustomInputDialog.value = true
+                        }
+                    }
+
                 )
+                // "직접 입력할래요!" 선택 시 나타나는 입력 다이얼로그
+                if (showCustomInputDialog.value) {
+                    AlertDialog(
+                        onDismissRequest = { showCustomInputDialog.value = false },
+                        title = { Text("목적지 직접 입력") },
+                        text = {
+                            Column {
+                                Text("여행 가고 싶은 곳을 입력하세요:")
+                                OutlinedTextField(
+                                    value = customDestinationInput.value,
+                                    onValueChange = { customDestinationInput.value = it },
+                                    placeholder = { Text("예: 서울, 부산, 제주 등") }
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
+                                    selectedDestination.value = customDestinationInput.value
+                                    showCustomInputDialog.value = false
+                                }
+                            ) {
+                                Text("확인")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = { showCustomInputDialog.value = false }
+                            ) {
+                                Text("취소")
+                            }
+                        }
+                    )
+                }
             }
 
             2 -> {
                 Text("여행\n기간은 어떻게 되시나요?", fontSize = 50.sp, lineHeight = 55.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 DropdownQuestion(
-                    question = "여행 기간은 어떻게 되시나요?",
+                    question = "여행 기간을 선택해주세요",
                     options = travelPeriodOptions,
                     selectedOption = selectedTravelPeriod
                 )
@@ -202,7 +258,7 @@ fun MainScreen(navController: NavHostController) {
                 Text("누구와 함께\n가세요?", fontSize = 50.sp, lineHeight = 55.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 DropdownQuestion(
-                    question = "누구와 함께 가세요?",
+                    question = "함께 가시는 분을 선택해주세요",
                     options = companionOptions,
                     selectedOption = selectedCompanion
                 )
@@ -212,7 +268,7 @@ fun MainScreen(navController: NavHostController) {
                 Text("이동 방법은?", fontSize = 50.sp, lineHeight = 55.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 DropdownQuestion(
-                    question = "이동 방법은?",
+                    question = "원하는 교통수단을 선택해주세요",
                     options = transportationOptions,
                     selectedOption = selectedTransportation
                 )
@@ -222,7 +278,7 @@ fun MainScreen(navController: NavHostController) {
                 Text("예산은\n어느 정도 생각하세요?", fontSize = 50.sp, lineHeight = 55.sp)
                 Spacer(modifier = Modifier.height(20.dp))
                 DropdownQuestion(
-                    question = "예산은 어느 정도 생각하세요?",
+                    question = "예산을 선택해주세요",
                     options = budgetOptions,
                     selectedOption = selectedBudget
                 )
@@ -238,29 +294,12 @@ fun MainScreen(navController: NavHostController) {
                 }
             }
 
-            Button(onClick = {
-                // Firebase 로그아웃
-                AuthManager.logout()
-                // 카카오 로그아웃
-                UserApiClient.instance.logout { error ->
-                    if (error != null) {
-                        Log.e("Kakao", "카카오 로그아웃 실패: $error")
-                    } else {
-                        Log.d("Kakao", "카카오 로그아웃 성공")
-                    }
-                }
-                // 네이버 로그아웃
-                NaverIdLoginSDK.logout()
-                // 로그아웃 후 로그인 화면으로 이동 (기존 스택을 모두 제거)
-                navController.navigate("login") {
-                    popUpTo("main") { inclusive = true }
-                }
-            }) {
-                Text("로그아웃")
-            }
-            // "다음" 혹은 "제출하기" 버튼 처리
+            LogoutButton(navController)            // "다음" 혹은 "제출하기" 버튼 처리
             if (currentStep < 5) {
-                Button(onClick = { currentStep++ }) {
+                Button(
+                    onClick = { currentStep++ },
+                    enabled = isCurrentStepAnswered
+                ) {
                     Text("다음")
                 }
             } else {
@@ -336,15 +375,16 @@ fun CascadingDropdownQuestion(
     question: String,
     options: List<String>,
     subOptionsMap: Map<String, List<String>>,
-    selectedOption: MutableState<String>
+    selectedOption: MutableState<String>,
+    onOptionSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    // currentOptions: 현재 보여줄 옵션 목록. 초기에는 전체 옵션이 들어감.
+    // 현재 보여줄 옵션 목록. 초기에는 전체 옵션이 들어감.
     var currentOptions by remember { mutableStateOf(options) }
-    // currentParent: 만약 세부지역 메뉴로 전환된 경우, 상위(부모) 지역을 저장.
+    // 만약 세부지역 메뉴로 전환된 경우, 상위(부모) 지역을 저장.
     var currentParent by remember { mutableStateOf<String?>(null) }
 
-    // 화면 너비 계산(드롭다운 중앙 정렬용)
+    // 화면 너비 계산 (드롭다운 중앙 정렬용)
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val menuWidth = screenWidth * 0.9f
@@ -381,17 +421,19 @@ fun CascadingDropdownQuestion(
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = {
-                        // 만약 아직 상위 옵션이 선택되지 않았고, 선택한 옵션에 세부지역이 있다면
+                        // 아직 상위 옵션이 선택되지 않았고, 선택한 옵션에 세부지역이 있다면
                         if (currentParent == null && subOptionsMap.containsKey(option)) {
                             currentParent = option
                             currentOptions = subOptionsMap[option] ?: emptyList()
                         } else {
                             // 최종 선택: 상위 옵션이 있다면 "상위: 하위" 형태로, 그렇지 않으면 단일 값
-                            selectedOption.value = if (currentParent != null) {
+                            val finalOption = if (currentParent != null) {
                                 "$currentParent: $option"
                             } else {
                                 option
                             }
+                            selectedOption.value = finalOption
+                            onOptionSelected(finalOption)
                             // 선택 완료 후 상태 초기화
                             currentOptions = options
                             currentParent = null
@@ -404,5 +446,18 @@ fun CascadingDropdownQuestion(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LogoutButton(navController: NavController) {
+    val context = LocalContext.current  // Composable 컨텍스트 내에서 미리 호출
+    Button(onClick = {
+        LogoutManager.logout(context)
+        navController.navigate("login") {
+            popUpTo("main") { inclusive = true }
+        }
+    }) {
+        Text("로그아웃")
     }
 }

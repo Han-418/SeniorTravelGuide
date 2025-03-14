@@ -44,6 +44,13 @@ import com.intel.NLPproject.models.UserInfo
 import com.kakao.sdk.user.UserApiClient
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -76,7 +83,8 @@ fun LoginScreen(navController: NavHostController) {
             onClick = {
                 navController.navigate("phoneLogin")
             },
-            modifier = Modifier.height(50.dp)
+            modifier = Modifier
+                .height(50.dp)
                 .width(300.dp),
             shape = RectangleShape
         ) {
@@ -201,13 +209,40 @@ fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) 
             .width(300.dp)
             .height(50.dp)
             .clickable {
-                // 카카오톡 앱으로 로그인 시도
                 UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
                     if (error != null) {
                         onError(error)
                     } else if (token != null) {
-                        // 로그인 성공, token.accessToken 사용 가능
-                        onSuccess(token.accessToken)
+                        UserApiClient.instance.me { user, error ->
+                            if (error != null) {
+                                onError(error)
+                            } else if (user != null) {
+                                // 안정적인 고유 식별자인 user.id 사용하여 UID 생성
+                                val stableUid = "kakao_${user.id}"
+                                // 실제 사용자 닉네임
+                                val nickname = user.kakaoAccount?.profile?.nickname ?: "Kakao User"
+                                val userInfo = UserInfo(
+                                    uid = stableUid,
+                                    name = "카카오_$nickname",
+                                    birthDate = "",
+                                    gender = "",
+                                    phoneNumber = ""
+                                )
+                                // 카카오 로그인 성공 시, 다른 소셜(네이버) 토큰 클리어
+                                TokenManager.naverAccessToken = null
+                                saveStableUid(context, "naver_stable_uid", "")
+                                // 그리고 카카오 stable UID 저장
+                                TokenManager.kakaoAccessToken = stableUid
+                                saveStableUid(context, "kakao_stable_uid", stableUid)
+                                UserInfoDatabase().saveUserInfo(userInfo) { success ->
+                                    if (success) {
+                                        onSuccess(token.accessToken)
+                                    } else {
+                                        onError(Throwable("사용자 정보 저장 실패"))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -217,7 +252,6 @@ fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) 
 @Composable
 fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessToken: String) -> Unit = {}) {
     val context = LocalContext.current
-    // Activity가 아닌 경우 로그인 플로우를 진행할 수 없으므로 반환합니다.
     val activity = context as? Activity ?: return
 
     Image(
@@ -229,14 +263,38 @@ fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessTo
             .clickable {
                 val oauthLoginCallback = object : OAuthLoginCallback {
                     override fun onSuccess() {
-                        // 로그인 성공 시, 액세스 토큰을 가져옵니다.
                         val accessToken = NaverIdLoginSDK.getAccessToken()
                         if (accessToken != null) {
-                            // 성공 시, 추가 작업 (예: 서버에 전달, 상태 업데이트 등)을 실행
-                            onLoginSuccess(accessToken)
-                            // 예: 로그인 성공 후 메인 화면으로 이동
-                            navController.navigate("first") {
-                                popUpTo("login") { inclusive = true }
+                            // 네이버 사용자 정보 API를 호출하여 ID와 이름 가져오기
+                            fetchNaverUserInfo(accessToken) { id, name ->
+                                if (id != null) {
+                                    val stableUid = "naver_$id"
+                                    val userInfo = UserInfo(
+                                        uid = stableUid,
+                                        name = "네이버_${name ?: "Naver User"}",
+                                        birthDate = "",
+                                        gender = "",
+                                        phoneNumber = ""
+                                    )
+                                    // 네이버 로그인 시, 카카오 토큰 클리어
+                                    TokenManager.kakaoAccessToken = null
+                                    saveStableUid(context, "kakao_stable_uid", "")
+                                    // 그리고 네이버 stable UID 저장
+                                    TokenManager.naverAccessToken = stableUid
+                                    saveStableUid(context, "naver_stable_uid", stableUid)
+                                    UserInfoDatabase().saveUserInfo(userInfo) { success ->
+                                        if (success) {
+                                            onLoginSuccess(accessToken)
+                                            navController.navigate("first") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
+                                        } else {
+                                            Toast.makeText(context, "사용자 정보 저장 실패", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "네이버 사용자 정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
                             Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
@@ -246,16 +304,45 @@ fun NaverLoginButton(navController: NavHostController, onLoginSuccess: (accessTo
                     override fun onFailure(httpStatus: Int, message: String) {
                         val errorCode = NaverIdLoginSDK.getLastErrorCode().code
                         val errorDescription = NaverIdLoginSDK.getLastErrorDescription()
-                        Toast.makeText(context, "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
 
                     override fun onError(errorCode: Int, message: String) {
-                        // onError에서 onFailure를 호출해 동일하게 처리합니다.
                         onFailure(errorCode, message)
                     }
                 }
-                // 네이버 로그인 플로우 시작 (Activity를 파라미터로 전달)
                 NaverIdLoginSDK.authenticate(activity, oauthLoginCallback)
             }
     )
+}
+
+fun fetchNaverUserInfo(accessToken: String, onResult: (id: String?, name: String?) -> Unit) {
+    val client = OkHttpClient()
+    val request = Request.Builder()
+        .url("https://openapi.naver.com/v1/nid/me")
+        .addHeader("Authorization", "Bearer $accessToken")
+        .build()
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            onResult(null, null)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            val bodyString = response.body?.string()
+            if (bodyString != null) {
+                val json = JSONObject(bodyString)
+                // 예시 응답: { "resultcode": "00", "message": "success", "response": { "id": "12345", "name": "실제 이름", ... } }
+                val responseObj = json.optJSONObject("response")
+                val id = responseObj?.optString("id")
+                val name = responseObj?.optString("name") ?: responseObj?.optString("nickname") ?: "Naver User"
+                onResult(id, name)
+            } else {
+                onResult(null, null)
+            }
+        }
+    })
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -90,33 +91,52 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
                 }
             }
         }
-        // "식당 정하자" 버튼: 선택한 숙소 목록만 저장하고 다음 화면으로 이동
-        Button(
-            onClick = {
-                // 현재 로그인된 유저의 ID를 가져옵니다.
-                val currentUserId = getCurrentUserId(context)
-                if (currentUserId != null) {
-                    if (selectedAccommodations.isNotEmpty()) {
-                        AccommodationDatabase.saveAccommodations(currentUserId, selectedAccommodations) { success ->
-                            if (success) {
-                                Toast.makeText(context, "숙소 정보 저장 완료", Toast.LENGTH_SHORT).show()
-                                navController.navigate("restaurantPreference")
-                            } else {
-                                Toast.makeText(context, "숙소 정보 저장 실패", Toast.LENGTH_SHORT).show()
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = { navController.popBackStack() },
+            ) {
+                Text("뒤로가기")
+            }
+            // 선택한 숙소 목록만 저장하고 다음 화면으로 이동
+            Button(
+                onClick = {
+                    // 현재 로그인된 유저의 ID를 가져옵니다.
+                    val currentUserId = getCurrentUserId(context)
+                    if (currentUserId != null) {
+                        if (selectedAccommodations.isNotEmpty()) {
+                            AccommodationDatabase.saveAccommodations(
+                                currentUserId,
+                                selectedAccommodations
+                            ) { success ->
+                                if (success) {
+                                    Toast.makeText(context, "숙소 정보 저장 완료", Toast.LENGTH_SHORT)
+                                        .show()
+                                    navController.navigate("restaurantPreference")
+                                } else {
+                                    Toast.makeText(context, "숙소 정보 저장 실패", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
                             }
+                        } else {
+                            Toast.makeText(context, "선택된 숙소가 없습니다.", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(context, "선택된 숙소가 없습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
                     }
-                } else {
-                    Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(text = "식당 정하자")
+                },
+            ) {
+                Text(text = "저장 후 식당")
+            }
         }
+        Button(
+            onClick = {
+                navController.navigate("first")
+            }
+        ) {
+            Text("메인화면으로")
+        }
+
     }
 }

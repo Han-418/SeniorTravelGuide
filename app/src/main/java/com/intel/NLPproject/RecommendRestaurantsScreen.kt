@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -92,32 +93,51 @@ fun RecommendRestaurantsScreen(navController: NavHostController) {
                 }
             }
         }
-        // "마지막..여행 시작끝" 버튼: 선택한 식당 목록을 저장하고 다음 화면으로 이동
-        Button(
-            onClick = {
-                val currentUserId = getCurrentUserId(context)
-                if (currentUserId != null) {
-                    if (selectedRestaurants.isNotEmpty()) {
-                        RestaurantDatabase.saveRestaurants(currentUserId, selectedRestaurants) { success ->
-                            if (success) {
-                                Toast.makeText(context, "식당 정보 저장 완료", Toast.LENGTH_SHORT).show()
-                                navController.navigate("travelTimePreference")
-                            } else {
-                                Toast.makeText(context, "식당 정보 저장 실패", Toast.LENGTH_SHORT).show()
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = { navController.popBackStack() },
+            ) {
+                Text("뒤로가기")
+            }
+            // 버튼: 선택한 식당 목록을 저장하고 다음 화면으로 이동
+            Button(
+                onClick = {
+                    val currentUserId = getCurrentUserId(context)
+                    if (currentUserId != null) {
+                        if (selectedRestaurants.isNotEmpty()) {
+                            RestaurantDatabase.saveRestaurants(
+                                currentUserId,
+                                selectedRestaurants
+                            ) { success ->
+                                if (success) {
+                                    Toast.makeText(context, "식당 정보 저장 완료", Toast.LENGTH_SHORT)
+                                        .show()
+                                    navController.navigate("travelTimePreference")
+                                } else {
+                                    Toast.makeText(context, "식당 정보 저장 실패", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
                             }
+                        } else {
+                            Toast.makeText(context, "선택된 식당이 없습니다.", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(context, "선택된 식당이 없습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
                     }
-                } else {
-                    Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(text = "마지막..여행 시작끝")
+                },
+            ) {
+                Text(text = "저장 후 시작끝 시간 정하기")
+            }
         }
+        Button(
+            onClick = {
+                navController.navigate("first")
+            }
+        ) {
+            Text("메인화면으로")
+        }
+
     }
 }

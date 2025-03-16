@@ -1,11 +1,13 @@
 package com.intel.NLPproject
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +38,14 @@ fun FirstScreen(navController: NavHostController) {
     ) {
         Text("여행한잔", fontSize = 50.sp)
         Spacer(modifier = Modifier.height(20.dp))
+        Column(
+            modifier = Modifier.weight(1f)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("image")
+        }
         Button(
             onClick = {
                 navController.navigate("main")
@@ -42,6 +53,7 @@ fun FirstScreen(navController: NavHostController) {
         ) {
             Text("시작하기")
         }
+        LogoutButton(navController)
         ShowCurrentUserButton()
     }
 }

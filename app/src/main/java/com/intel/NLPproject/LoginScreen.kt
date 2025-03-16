@@ -4,12 +4,14 @@ import android.app.Activity
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -17,7 +19,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -28,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,7 +67,7 @@ fun LoginScreen(navController: NavHostController) {
             .fillMaxSize()
             .systemBarsPadding()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 카카오 로그인 성공/실패 처리를 위한 콜백
@@ -78,6 +85,20 @@ fun LoginScreen(navController: NavHostController) {
             // 에러 메시지 표시 등 처리
             Toast.makeText(context, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
         }
+        Text("여행한잔", fontSize = 50.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .height(300.dp)
+                .padding(16.dp)
+                .background(color = Color.LightGray),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("app icon")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(
             onClick = {
@@ -90,10 +111,12 @@ fun LoginScreen(navController: NavHostController) {
         ) {
             Text("전화번호로 로그인")
         }
+        Spacer(modifier = Modifier.height(8.dp))
         KakaoLoginButton(
             onSuccess = onKakaoLoginSuccess,
             onError = onKakaoLoginError
         )
+        Spacer(modifier = Modifier.height(8.dp))
         // 네이버 로그인 버튼
         NaverLoginButton(navController = navController) { accessToken ->
             // 로그인 성공 후 추가 작업이 필요하면 이곳에서 처리
@@ -110,6 +133,8 @@ fun PhoneLoginScreen(navController: NavController) {
     val verificationId = remember { mutableStateOf("") }
     val otpCode = remember { mutableStateOf("") }
     val isCodeSent = remember { mutableStateOf(false) }
+    // 전화번호 오류 상태
+    val showPhoneError = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -118,31 +143,57 @@ fun PhoneLoginScreen(navController: NavController) {
     ) {
         Text("전화번호 인증으로 로그인", fontSize = 30.sp)
         Spacer(modifier = Modifier.height(20.dp))
-        // 전화번호 입력 필드 (숫자만, 최대 8자리)
+        // 전화번호 입력 필드
         OutlinedTextField(
             value = phoneNumber.value,
             onValueChange = { newValue ->
+                // 입력값에서 숫자만 추출, 최대 11자리로 제한
                 val digits = newValue.filter { it.isDigit() }
-                phoneNumber.value = if (digits.length > 8) digits.take(8) else digits
+                phoneNumber.value = digits.take(11)
+                // 입력 도중에는 오류 상태 초기화
+                showPhoneError.value = false
             },
-            label = { Text("전화번호 뒷자리 8개 입력(숫자만)") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            singleLine = true
+            label = { Text("전화번호 (예: 010-3333-3333)") },
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone),
+            singleLine = true,
+            visualTransformation = PhoneNumberVisualTransformation(),
+            isError = showPhoneError.value,
+            trailingIcon = {
+                if (showPhoneError.value) {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = "Error",
+                        tint = Color.Red
+                    )
+                }
+            }
         )
+        if (showPhoneError.value) {
+            Text(
+                text = "올바른 전화번호 형식이 아닙니다.",
+                color = Color.Red,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(10.dp))
 
         // 로그인 버튼 클릭 인증 코드 발송
         Button(onClick = {
-            val formattedPhone = formatPhoneNumber(phoneNumber.value)
-            if (formattedPhone.isNotEmpty()) {
-                // 전화번호가 데이터베이스에 있든 없든 항상 OTP 인증 코드 발송
-                sendVerificationCode(formattedPhone, context, auth, verificationId, isCodeSent)
+            if (phoneNumber.value.length != 11 || !phoneNumber.value.startsWith("010")) {
+                showPhoneError.value = true
             } else {
-                Log.e("PhoneAuth", "잘못된 전화번호 형식")
+                val formattedPhone = formatPhoneNumber(phoneNumber.value)
+                if (formattedPhone.isNotEmpty()) {
+                    sendVerificationCode(formattedPhone, context, auth, verificationId, isCodeSent)
+                } else {
+                    Log.e("PhoneAuth", "잘못된 전화번호 형식")
+                    showPhoneError.value = true
+                }
             }
         }) {
-            Text("로그인")
+            Text("인증코드 받기")
         }
         // OTP 입력 및 인증 코드 확인 UI (OTP 발송 후 표시)
         if (isCodeSent.value) {
@@ -190,9 +241,11 @@ fun PhoneLoginScreen(navController: NavController) {
 
 // 입력받은 전화번호를 "+8210XXXXXXX" 형식으로 포맷팅하는 함수
 fun formatPhoneNumber(phoneNumber: String): String {
+    // 모든 숫자만 남김 (예: "010-3333-3333" → "01033333333")
     val cleanedNumber = phoneNumber.filter { it.isDigit() }
-    return if (cleanedNumber.length == 8) {
-        "+8210$cleanedNumber"
+    return if (cleanedNumber.length == 11 && cleanedNumber.startsWith("010")) {
+        // "01033333333" → "+82" + "1033333333" → "+821033333333"
+        "+82" + cleanedNumber.substring(1)
     } else {
         ""
     }

@@ -73,4 +73,5 @@ dependencies {
     implementation("com.kakao.sdk:v2-user:2.21.0")
     // naver login
     implementation("com.navercorp.nid:oauth:5.10.0") // jdk 11
+    implementation ("androidx.compose.material:material-icons-extended:1.3.1")
 }

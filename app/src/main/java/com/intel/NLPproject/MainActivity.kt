@@ -18,14 +18,18 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -105,7 +109,7 @@ fun MyApp(navController: NavHostController) {
         composable("recommendRestaurants") { RecommendRestaurantsScreen(navController) }
         composable("recommendTransportation") { RecommendTransportationScreen(navController) }
         composable("attractionPreference") { AttractionPreferenceScreen(navController) }
-        composable("attractionPreference2") { AttractionPreferenceScreen2(navController) }
+//        composable("attractionPreference2") { AttractionPreferenceScreen2(navController) }
         composable("accommodationPreference") { AccommodationPreferenceScreen(navController) }
         composable("restaurantPreference") { RestaurantPreferenceScreen(navController) }
         composable("travelTimePreference") { TravelTimePreferenceScreen(navController) }
@@ -125,13 +129,12 @@ fun MyApp(navController: NavHostController) {
 fun MainScreen(navController: NavHostController) {
     // 각 질문별 옵션 목록
     val destinationOptions = listOf(
-        "직접 입력할래요!",
+        "직접 입력",
         "경상도",
         "강원도",
         "제주도",
         "전라도",
-        "충청도",
-        "잘 모르겠음 (AI 추천)"
+        "충청도"
     )
     val travelPeriodOptions = listOf(
         "당일치기",
@@ -141,28 +144,29 @@ fun MainScreen(navController: NavHostController) {
     )
     val companionOptions = listOf(
         "혼자",
-        "부부 / 커플",
-        "가족 (아이 포함)",
-        "부모님 모시고 (어르신 포함)",
+        "부부/커플",
+        "가족들과",
+        "부모님과",
         "친구들과"
     )
     val transportationOptions = listOf(
         "자가용",
-        "기차 / 버스",
+        "기차",
+        "버스",
         "비행기",
-        "상관없음 (추천)"
+        "상관없음"
     )
     val budgetOptions = listOf(
-        "최대한 저렴하게",
-        "평균적으로",
-        "가격 상관없음"
+        "저렴하게",
+        "평균적",
+        "상관없음"
     )
     val subregionOptionsMap = mapOf(
-        "경상도" to listOf("부산", "대구", "울산", "남해", "포항", "경주", "안동"),
-        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "평창", "양양"),
-        "제주도" to listOf("제주시", "애월읍", "한림읍", "우도면", "서귀포시", "안덕면", "성산읍"),
-        "전라도" to listOf("전주", "광주", "순천", "여수", "목포", "곡성", "신안"),
-        "충청도" to listOf("대전", "청주", "천안", "공주", "논산", "보령", "괴산")
+        "경상도" to listOf("부산", "대구", "울산", "포항", "경주", "안동"),
+        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "양양"),
+        "제주도" to listOf("제주시", "서귀포시", "애월읍", "한림읍", "우도면", "성산읍"),
+        "전라도" to listOf("전주", "광주", "순천", "여수", "목포", "곡성"),
+        "충청도" to listOf("대전", "청주", "천안", "논산", "보령", "괴산")
     )
     // 각 질문의 선택 상태
     val selectedDestination = remember { mutableStateOf("") }
@@ -173,160 +177,115 @@ fun MainScreen(navController: NavHostController) {
     // 직접 입력 다이얼로그를 위한 상태
     val showCustomInputDialog = remember { mutableStateOf(false) }
     val customDestinationInput = remember { mutableStateOf("") }
-    // currentStep -> 1 : destination, 2 : travel period, 3 : companion, 4 : transportation, 5 : budget
-    var currentStep by remember { mutableIntStateOf(1) }
-    // 현재 단계에서 답변이 선택되었는지 확인
-    val isCurrentStepAnswered = when (currentStep) {
-        1 -> selectedDestination.value.isNotEmpty()
-        2 -> selectedTravelPeriod.value.isNotEmpty()
-        3 -> selectedCompanion.value.isNotEmpty()
-        4 -> selectedTransportation.value.isNotEmpty()
-        5 -> selectedBudget.value.isNotEmpty()
-        else -> false
-    }
 
-    ZoomableContent {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(start = 10.dp, end = 10.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.size(10.dp))
-            Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(30.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .padding(horizontal = 10.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.size(10.dp))
+        Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(30.dp))
 
-            // 현재 단계에 따라 다른 질문 표시
-            when (currentStep) {
-                1 -> {
-                    Text("어디로\n가실래요?", fontSize = 50.sp, lineHeight = 55.sp)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    CascadingDropdownQuestion(
-                        question = "지역을 선택해주세요",
-                        options = destinationOptions,
-                        subOptionsMap = subregionOptionsMap,
-                        selectedOption = selectedDestination,
-                        onOptionSelected = { option ->
-                            selectedDestination.value = option
-                            // 직접 입력 옵션 선택 시 다이얼로그 활성화
-                            if (option == "직접 입력할래요!") {
-                                showCustomInputDialog.value = true
-                            }
-                        }
-
-                    )
-                    // "직접 입력할래요!" 선택 시 나타나는 입력 다이얼로그
-                    if (showCustomInputDialog.value) {
-                        AlertDialog(
-                            onDismissRequest = { showCustomInputDialog.value = false },
-                            title = { Text("목적지 직접 입력") },
-                            text = {
-                                Column {
-                                    Text("여행 가고 싶은 곳을 입력하세요:")
-                                    OutlinedTextField(
-                                        value = customDestinationInput.value,
-                                        onValueChange = { customDestinationInput.value = it },
-                                        placeholder = { Text("예: 서울, 부산, 제주 등") }
-                                    )
-                                }
-                            },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
-                                        selectedDestination.value = customDestinationInput.value
-                                        showCustomInputDialog.value = false
-                                    }
-                                ) {
-                                    Text("확인")
-                                }
-                            },
-                            dismissButton = {
-                                Button(
-                                    onClick = { showCustomInputDialog.value = false }
-                                ) {
-                                    Text("취소")
-                                }
-                            }
+        // 질문 1: 목적지 선택 (부산/경상권 등 서브 옵션 포함)
+        GridCascadingQuestion(
+            question = "어디로 가실래요?",
+            options = destinationOptions,
+            subOptionsMap = subregionOptionsMap,
+            selectedOption = selectedDestination
+        )
+        // "직접 입력" 옵션 선택 시 다이얼로그 띄우기
+        if (selectedDestination.value == "직접 입력" && !showCustomInputDialog.value) {
+            showCustomInputDialog.value = true
+        }
+        if (showCustomInputDialog.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    showCustomInputDialog.value = false
+                    // 취소 시 selectedDestination 초기화
+                    selectedDestination.value = ""
+                },
+                title = { Text("목적지 직접 입력") },
+                text = {
+                    Column {
+                        Text("여행 가고 싶은 곳을 입력하세요:")
+                        OutlinedTextField(
+                            value = customDestinationInput.value,
+                            onValueChange = { customDestinationInput.value = it },
+                            placeholder = { Text("예: 서울, 부산, 제주 등") }
                         )
                     }
-                }
-
-                2 -> {
-                    Text("여행\n기간은 어떻게 되시나요?", fontSize = 50.sp, lineHeight = 55.sp)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    DropdownQuestion(
-                        question = "여행 기간을 선택해주세요",
-                        options = travelPeriodOptions,
-                        selectedOption = selectedTravelPeriod
-                    )
-                }
-
-                3 -> {
-                    Text("누구와 함께\n가세요?", fontSize = 50.sp, lineHeight = 55.sp)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    DropdownQuestion(
-                        question = "함께 가시는 분을 선택해주세요",
-                        options = companionOptions,
-                        selectedOption = selectedCompanion
-                    )
-                }
-
-                4 -> {
-                    Text("이동 방법은?", fontSize = 50.sp, lineHeight = 55.sp)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    DropdownQuestion(
-                        question = "원하는 교통수단을 선택해주세요",
-                        options = transportationOptions,
-                        selectedOption = selectedTransportation
-                    )
-                }
-
-                5 -> {
-                    Text("예산은\n어느 정도 생각하세요?", fontSize = 50.sp, lineHeight = 55.sp)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    DropdownQuestion(
-                        question = "예산을 선택해주세요",
-                        options = budgetOptions,
-                        selectedOption = selectedBudget
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.size(30.dp))
-
-            Row {
-                if (currentStep > 1) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { currentStep-- }) {
-                        Text("이전")
-                    }
-                }
-
-                LogoutButton(navController)            // "다음" 혹은 "제출하기" 버튼 처리
-                if (currentStep < 5) {
-                    Button(
-                        onClick = { currentStep++ },
-                        enabled = isCurrentStepAnswered
-                    ) {
-                        Text("다음")
-                    }
-                } else {
+                },
+                confirmButton = {
                     Button(
                         onClick = {
-                            // 모든 질문에 대한 선택이 완료되었으므로 결과 페이지로 이동
-                            navController.navigate("loading/recommendAttraction")
+                            // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
+                            selectedDestination.value = customDestinationInput.value
+                            showCustomInputDialog.value = false
                         }
                     ) {
-                        Text("제출하기")
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            showCustomInputDialog.value = false
+                            // 취소 시에도 selectedDestination 값을 초기화하여 다이얼로그가 재발동되지 않도록 함
+                            selectedDestination.value = ""
+                        }
+                    ) {
+                        Text("취소")
                     }
                 }
+            )
+        }
+
+        // 질문 2: 여행 기간은 몇 박 몇 일로?
+        GridQuestion(
+            question = "여행 기간은 어떻게 되시나요?",
+            options = travelPeriodOptions,
+            selectedOption = selectedTravelPeriod
+        )
+        // 질문 3: 누구와 함께 가세요?
+        GridQuestion(
+            question = "누구와 함께 가세요?",
+            options = companionOptions,
+            selectedOption = selectedCompanion
+        )
+        // 질문 4: 이동 방법은?
+        GridQuestion(
+            question = "이동 방법은?",
+            options = transportationOptions,
+            selectedOption = selectedTransportation
+        )
+        // 질문 5: 예산은 어느 정도 생각하세요?
+        GridQuestion(
+            question = "예산은 어느 정도 생각하세요?",
+            options = budgetOptions,
+            selectedOption = selectedBudget
+        )
+
+        Spacer(modifier = Modifier.size(30.dp))
+        Row {
+            LogoutButton(navController)
+            Spacer(modifier = Modifier.size(16.dp))
+            Button(
+                onClick = {
+                    // 모든 질문 선택 완료 후 결과 페이지로 이동
+                    navController.navigate("loading/recommendAttraction")
+                }
+            ) {
+                Text("제출하기")
             }
         }
     }
 }
+
 
 @Composable
 fun DropdownQuestion(
@@ -476,46 +435,116 @@ fun LogoutButton(navController: NavController) {
 }
 
 @Composable
-fun ZoomableContent(content: @Composable () -> Unit) {
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    var containerSize by remember { mutableStateOf(IntSize.Zero) }
-    val minScale = 1f
-    val maxScale = 1.5f
-    // 제한 계수: 0.3f이면 최대 이동 범위의 30%까지만 이동할 수 있음
-    val restrictionFactor = 0.7f
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .onGloballyPositioned { coordinates ->
-                containerSize = coordinates.size
-            }
-            .pointerInput(Unit) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    val newScale = (scale * zoom).coerceIn(minScale, maxScale)
-                    scale = newScale
-
-                    // 기존 offset에 pan 추가
-                    offset += pan
-
-                    // 원래 최대 이동 범위 계산
-                    val maxOffsetX = ((containerSize.width * scale) - containerSize.width) / 2f
-                    val maxOffsetY = ((containerSize.height * scale) - containerSize.height) / 2f
-                    // 제한 계수를 곱해 더 엄격하게 제한
-                    offset = Offset(
-                        x = offset.x.coerceIn(-maxOffsetX * restrictionFactor, maxOffsetX * restrictionFactor),
-                        y = offset.y.coerceIn(-maxOffsetY * restrictionFactor, maxOffsetY * restrictionFactor)
-                    )
+fun GridQuestion(
+    question: String,
+    options: List<String>,
+    selectedOption: MutableState<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 기본 버튼
+        OutlinedButton(
+            onClick = { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .height(50.dp)
+        ) {
+            Text(
+                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
+                fontSize = 20.sp
+            )
+        }
+        // 버튼 클릭 시 그리드 형태로 옵션 보여주기
+        if (expanded) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3), // 3열
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp), // 필요에 따라 높이 조정
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(options.size) { index ->
+                    val option = options[index]
+                    Button(
+                        onClick = {
+                            selectedOption.value = option
+                            expanded = false
+                        },
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .fillMaxWidth()
+                            .height(45.dp)
+                    ) {
+                        Text(option)
+                    }
                 }
             }
-            .graphicsLayer {
-                translationX = offset.x
-                translationY = offset.y
-                scaleX = scale
-                scaleY = scale
+        }
+    }
+}
+
+@Composable
+fun GridCascadingQuestion(
+    question: String,
+    options: List<String>,
+    subOptionsMap: Map<String, List<String>>,
+    selectedOption: MutableState<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+    // 초기 옵션은 전체 옵션, sub옵션 선택 시 변경됨
+    var currentOptions by remember { mutableStateOf(options) }
+    var currentParent by remember { mutableStateOf<String?>(null) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+                .height(50.dp)
+        ) {
+            Text(
+                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
+                fontSize = 20.sp
+            )
+        }
+        if (expanded) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(currentOptions.size) { index ->
+                    val option = currentOptions[index]
+                    Button(
+                        onClick = {
+                            // 만약 아직 상위 옵션이 선택되지 않았고, 해당 옵션에 서브 옵션이 있다면
+                            if (currentParent == null && subOptionsMap.containsKey(option)) {
+                                currentParent = option
+                                currentOptions = subOptionsMap[option] ?: emptyList()
+                            } else {
+                                selectedOption.value = if (currentParent != null) {
+                                    "$currentParent: $option"
+                                } else {
+                                    option
+                                }
+                                // 선택 후 초기 상태로 복귀
+                                currentOptions = options
+                                currentParent = null
+                                expanded = false
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .fillMaxWidth()
+                            .height(45.dp)
+                    ) {
+                        Text(option)
+                    }
+                }
             }
-    ) {
-        content()
+        }
     }
 }

@@ -285,7 +285,7 @@ fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) 
                                 )
                                 // 카카오 로그인 성공 시, 다른 소셜(네이버) 토큰 클리어
                                 TokenManager.naverAccessToken = null
-                                saveStableUid(context, "naver_stable_uid", "")
+                                saveStableUid(context, "naver_stable_uid", null)
                                 // 그리고 카카오 stable UID 저장
                                 TokenManager.kakaoAccessToken = stableUid
                                 saveStableUid(context, "kakao_stable_uid", stableUid)
@@ -336,7 +336,7 @@ fun NaverLoginButton(
                                     )
                                     // 네이버 로그인 시, 카카오 토큰 클리어
                                     TokenManager.kakaoAccessToken = null
-                                    saveStableUid(context, "kakao_stable_uid", "")
+                                    saveStableUid(context, "kakao_stable_uid", null)
                                     // 그리고 네이버 stable UID 저장
                                     TokenManager.naverAccessToken = stableUid
                                     saveStableUid(context, "naver_stable_uid", stableUid)

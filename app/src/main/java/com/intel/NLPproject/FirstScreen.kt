@@ -20,11 +20,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.intel.NLPproject.TokenManager.getCurrentUserKey
 import com.intel.NLPproject.firebase.UserInfoDatabase
+import com.intel.NLPproject.ui.theme.testFamily
 
 @Composable
 fun FirstScreen(navController: NavHostController) {
@@ -32,11 +35,11 @@ fun FirstScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
-            .verticalScroll(rememberScrollState()),
+            .padding(10.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("여행한잔", fontSize = 50.sp)
+        Text("여행한잔", fontSize = 50.sp, fontFamily = testFamily, fontWeight = FontWeight.ExtraBold)
         Spacer(modifier = Modifier.height(20.dp))
         Column(
             modifier = Modifier

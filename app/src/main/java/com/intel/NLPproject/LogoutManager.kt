@@ -27,7 +27,7 @@ object LogoutManager {
         TokenManager.kakaoAccessToken = null
         TokenManager.naverAccessToken = null
         // 여기서는 유틸리티 함수를 사용하여 클리어 (빈 문자열이나 제거)
-        saveStableUid(context, "kakao_stable_uid", "")
-        saveStableUid(context, "naver_stable_uid", "")
+        saveStableUid(context, "kakao_stable_uid", null)
+        saveStableUid(context, "naver_stable_uid", null)
     }
 }

@@ -39,7 +39,8 @@ fun FirstScreen(navController: NavHostController) {
         Text("여행한잔", fontSize = 50.sp)
         Spacer(modifier = Modifier.height(20.dp))
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center

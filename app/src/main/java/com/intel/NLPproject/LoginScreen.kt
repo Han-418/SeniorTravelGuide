@@ -89,7 +89,8 @@ fun LoginScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .height(300.dp)
                 .padding(16.dp)
                 .background(color = Color.LightGray),
@@ -171,6 +172,7 @@ fun PhoneLoginScreen(navController: NavController) {
         if (showPhoneError.value) {
             Text(
                 text = "올바른 전화번호 형식이 아닙니다.",
+                fontSize = 16.sp,
                 color = Color.Red,
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(start = 16.dp)

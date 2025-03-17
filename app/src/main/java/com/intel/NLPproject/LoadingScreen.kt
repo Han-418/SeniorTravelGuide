@@ -16,7 +16,7 @@ import kotlinx.coroutines.delay
 fun LoadingScreen(
     navController: NavHostController,
     destination: String,
-    loadingDelay: Long = 2000L // 로딩 딜레이 (예: 2초)
+    loadingDelay: Long = 1000L // 로딩 딜레이 (예: 2초)
 ) {
     LaunchedEffect(key1 = destination) {
         delay(loadingDelay)

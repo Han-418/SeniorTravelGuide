@@ -138,6 +138,5 @@ fun RecommendRestaurantsScreen(navController: NavHostController) {
         ) {
             Text("메인화면으로")
         }
-
     }
 }

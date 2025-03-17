@@ -2,6 +2,7 @@
 
 package com.intel.NLPproject
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -71,6 +72,8 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
+import java.time.LocalDate
+import java.util.Calendar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +91,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp(navController: NavHostController) {
-    val navController = rememberNavController()
+
 
     AnimatedNavHost(
         navController = navController,
@@ -104,12 +107,10 @@ fun MyApp(navController: NavHostController) {
         composable("main") { MainScreen(navController) }
         composable("recommendAttraction") { RecommendAttractionScreen(navController) }
         composable("recommendAttraction2") { RecommendAttractionScreen2(navController) }
-        composable("recommendAttraction3") { RecommendAttractionScreen3(navController) }
         composable("recommendAccommodation") { RecommendAccommodationScreen(navController) }
         composable("recommendRestaurants") { RecommendRestaurantsScreen(navController) }
         composable("recommendTransportation") { RecommendTransportationScreen(navController) }
         composable("attractionPreference") { AttractionPreferenceScreen(navController) }
-//        composable("attractionPreference2") { AttractionPreferenceScreen2(navController) }
         composable("accommodationPreference") { AccommodationPreferenceScreen(navController) }
         composable("restaurantPreference") { RestaurantPreferenceScreen(navController) }
         composable("travelTimePreference") { TravelTimePreferenceScreen(navController) }
@@ -135,12 +136,6 @@ fun MainScreen(navController: NavHostController) {
         "제주도",
         "전라도",
         "충청도"
-    )
-    val travelPeriodOptions = listOf(
-        "당일치기",
-        "1박 2일",
-        "2박 3일",
-        "3박 이상"
     )
     val companionOptions = listOf(
         "혼자",
@@ -170,13 +165,14 @@ fun MainScreen(navController: NavHostController) {
     )
     // 각 질문의 선택 상태
     val selectedDestination = remember { mutableStateOf("") }
-    val selectedTravelPeriod = remember { mutableStateOf("") }
     val selectedCompanion = remember { mutableStateOf("") }
     val selectedTransportation = remember { mutableStateOf("") }
     val selectedBudget = remember { mutableStateOf("") }
     // 직접 입력 다이얼로그를 위한 상태
     val showCustomInputDialog = remember { mutableStateOf(false) }
     val customDestinationInput = remember { mutableStateOf("") }
+    val selectedDeparture = remember { mutableStateOf<LocalDate?>(null) }
+    val selectedReturn = remember { mutableStateOf<LocalDate?>(null) }
 
     Column(
         modifier = Modifier
@@ -244,12 +240,11 @@ fun MainScreen(navController: NavHostController) {
                 }
             )
         }
-
-        // 질문 2: 여행 기간은 몇 박 몇 일로?
-        GridQuestion(
+        // 질문 2: 여행 기간 선택 (출발, 도착)
+        TravelPeriodQuestion(
             question = "여행 기간은 어떻게 되시나요?",
-            options = travelPeriodOptions,
-            selectedOption = selectedTravelPeriod
+            selectedDeparture = selectedDeparture,
+            selectedReturn = selectedReturn
         )
         // 질문 3: 누구와 함께 가세요?
         GridQuestion(
@@ -286,138 +281,106 @@ fun MainScreen(navController: NavHostController) {
     }
 }
 
-
 @Composable
-fun DropdownQuestion(
+fun TravelPeriodQuestion(
     question: String,
-    options: List<String>,
-    selectedOption: MutableState<String>
+    selectedDeparture: MutableState<LocalDate?>,
+    selectedReturn: MutableState<LocalDate?>
 ) {
+    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    // 메뉴가 화면 너비의 90%를 차지하므로
-    val menuWidth = screenWidth * 0.9f
-    // 메뉴를 중앙에 배치하기 위한 오프셋
-    val offsetX = (screenWidth - menuWidth) / 2
+    // DatePickerDialog 호출 상태
+    val showDeparturePicker = remember { mutableStateOf(false) }
+    val showReturnPicker = remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // 버튼을 누르면 드롭다운 메뉴가 펼쳐짐
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // 기본 버튼 (선택된 날짜가 있으면 출력, 없으면 질문 텍스트)
         OutlinedButton(
-            onClick = { expanded = true },
+            onClick = { expanded = !expanded },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
                 .height(50.dp)
         ) {
-            Text(
-                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
-                fontSize = 20.sp
-            )
+            val displayText = if (selectedDeparture.value == null || selectedReturn.value == null)
+                question
+            else
+                "${selectedDeparture.value} ~ ${selectedReturn.value}"
+            // 날짜 선택 여부에 따라 텍스트 색상을 변경
+            val textColor = if (selectedDeparture.value != null && selectedReturn.value != null)
+                Color.Red
+            else
+                Color.Black
+
+            Text(text = displayText, fontSize = 20.sp, color = textColor)
         }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            offset = DpOffset(x = offsetX, y = 0.dp),
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .background(color = Color.Transparent)
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        selectedOption.value = option
-                        expanded = false
-                    },
-                    colors = MenuDefaults.itemColors(
-                        textColor = Color.Black
-                    )
-                )
+        // 확장 상태일 때 출발, 도착 선택 UI 표시
+        if (expanded) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("출발")
+                    Button(
+                        onClick = { showDeparturePicker.value = true },
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .height(45.dp)
+                    ) {
+                        Text(
+                            text = selectedDeparture.value?.toString() ?: "날짜 선택",
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("도착")
+                    Button(
+                        onClick = { showReturnPicker.value = true },
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .height(45.dp)
+                    ) {
+                        Text(
+                            text = selectedReturn.value?.toString() ?: "날짜 선택",
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
     }
-}
 
-@Composable
-fun CascadingDropdownQuestion(
-    question: String,
-    options: List<String>,
-    subOptionsMap: Map<String, List<String>>,
-    selectedOption: MutableState<String>,
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    // 현재 보여줄 옵션 목록. 초기에는 전체 옵션이 들어감.
-    var currentOptions by remember { mutableStateOf(options) }
-    // 만약 세부지역 메뉴로 전환된 경우, 상위(부모) 지역을 저장.
-    var currentParent by remember { mutableStateOf<String?>(null) }
-
-    // 화면 너비 계산 (드롭다운 중앙 정렬용)
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val menuWidth = screenWidth * 0.9f
-    val offsetX = (screenWidth - menuWidth) / 2
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        // 드롭다운을 여는 버튼
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .height(50.dp)
-        ) {
-            Text(
-                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
-                fontSize = 20.sp
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                // 드롭다운이 닫힐 때 초기 상태로 복귀
-                currentOptions = options
-                currentParent = null
+    // DatePickerDialog for 출발일
+    if (showDeparturePicker.value) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                selectedDeparture.value = LocalDate.of(year, month + 1, dayOfMonth)
+                showDeparturePicker.value = false
             },
-            offset = DpOffset(x = offsetX, y = 141.dp),
-            properties = PopupProperties(clippingEnabled = false),
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .background(color = Color.Transparent)
-        ) {
-            currentOptions.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        // 아직 상위 옵션이 선택되지 않았고, 선택한 옵션에 세부지역이 있다면
-                        if (currentParent == null && subOptionsMap.containsKey(option)) {
-                            currentParent = option
-                            currentOptions = subOptionsMap[option] ?: emptyList()
-                        } else {
-                            // 최종 선택: 상위 옵션이 있다면 "상위: 하위" 형태로, 그렇지 않으면 단일 값
-                            val finalOption = if (currentParent != null) {
-                                "$currentParent: $option"
-                            } else {
-                                option
-                            }
-                            selectedOption.value = finalOption
-                            onOptionSelected(finalOption)
-                            // 선택 완료 후 상태 초기화
-                            currentOptions = options
-                            currentParent = null
-                            expanded = false
-                        }
-                    },
-                    colors = MenuDefaults.itemColors(
-                        textColor = Color.Black
-                    )
-                )
-            }
-        }
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+    // DatePickerDialog for 도착일
+    if (showReturnPicker.value) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                selectedReturn.value = LocalDate.of(year, month + 1, dayOfMonth)
+                showReturnPicker.value = false
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 }
 
@@ -452,7 +415,8 @@ fun GridQuestion(
         ) {
             Text(
                 text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
-                fontSize = 20.sp
+                fontSize = 20.sp,
+                color = if (selectedOption.value.isEmpty()) Color.Black else Color.Red
             )
         }
         // 버튼 클릭 시 그리드 형태로 옵션 보여주기
@@ -503,9 +467,12 @@ fun GridCascadingQuestion(
                 .padding(12.dp)
                 .height(50.dp)
         ) {
+            val displayText = if (selectedOption.value.isEmpty()) question else selectedOption.value
+            val textColor = if (selectedOption.value.isEmpty()) Color.Black else Color.Red
             Text(
-                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
-                fontSize = 20.sp
+                text = displayText,
+                fontSize = 20.sp,
+                color = textColor
             )
         }
         if (expanded) {

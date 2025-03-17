@@ -14,12 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -30,48 +25,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -79,7 +55,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
 import java.time.LocalDate
@@ -143,57 +118,12 @@ fun MyApp(navController: NavHostController) {
             LoadingScreen(navController, destination = destination)
         }
         composable("first") { FirstScreen(navController) }
+        composable("question") { QuestionScreen(navController) }
     }
 }
 
 @Composable
 fun MainScreen(navController: NavHostController) {
-    // 각 질문별 옵션 목록
-    val destinationOptions = listOf(
-        "직접 입력",
-        "경상도",
-        "강원도",
-        "제주도",
-        "전라도",
-        "충청도"
-    )
-    val companionOptions = listOf(
-        "혼자",
-        "부부/커플",
-        "가족들과",
-        "부모님과",
-        "친구들과"
-    )
-    val transportationOptions = listOf(
-        "자가용",
-        "기차",
-        "버스",
-        "비행기",
-        "상관없음"
-    )
-    val budgetOptions = listOf(
-        "저렴하게",
-        "평균적",
-        "상관없음"
-    )
-    val subregionOptionsMap = mapOf(
-        "경상도" to listOf("부산", "대구", "울산", "포항", "경주", "안동"),
-        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "양양"),
-        "제주도" to listOf("제주시", "서귀포시", "애월읍", "한림읍", "우도면", "성산읍"),
-        "전라도" to listOf("전주", "광주", "순천", "여수", "목포", "곡성"),
-        "충청도" to listOf("대전", "청주", "천안", "논산", "보령", "괴산")
-    )
-    // 각 질문의 선택 상태
-    val selectedDestination = remember { mutableStateOf("") }
-    val selectedCompanion = remember { mutableStateOf("") }
-    val selectedTransportation = remember { mutableStateOf("") }
-    val selectedBudget = remember { mutableStateOf("") }
-    // 직접 입력 다이얼로그를 위한 상태
-    val showCustomInputDialog = remember { mutableStateOf(false) }
-    val customDestinationInput = remember { mutableStateOf("") }
-    val selectedDeparture = remember { mutableStateOf<LocalDate?>(null) }
-    val selectedReturn = remember { mutableStateOf<LocalDate?>(null) }
-
     val myFontFamily = FontFamily(
         Font(R.font.notoserifkrblack)
     )
@@ -222,6 +152,7 @@ fun MainScreen(navController: NavHostController) {
         // button1
         Button(
             onClick = {
+                navController.navigate("question")
             },
             modifier = Modifier
                 .width(330.dp)

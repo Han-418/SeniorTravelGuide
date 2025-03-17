@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,9 +74,11 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
         // 화면 제목
         Text(
             text = "여행 취향 설정",
-            fontSize = 32.sp,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
+        Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -85,7 +88,7 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
             // [여행 컨셉] 섹션
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 컨셉", fontSize = 20.sp)
+                    Text("여행 컨셉", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     // 메인 옵션: 한 줄씩 표시
                     travelConceptMap.keys.toList().forEach { option ->
@@ -99,12 +102,13 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                         // 세부 옵션: 선택된 메인 옵션에 대해 Row로 표시
@@ -123,13 +127,14 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                                         colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
+                                            .height(65.dp)
                                             .padding(vertical = 2.dp),
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 14.sp
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
@@ -142,7 +147,7 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
             // [일정 및 활동량] 섹션
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("일정 및 활동량", fontSize = 20.sp)
+                    Text("하루 활동량", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     scheduleMap.keys.toList().forEach { option ->
                         val containerColor =
@@ -155,12 +160,13 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                         val subOptions = scheduleMap[option] ?: emptyList()
@@ -178,13 +184,14 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                                         colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
+                                            .height(65.dp)
                                             .padding(vertical = 2.dp),
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 14.sp
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
@@ -197,7 +204,7 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
             // [특수 고려사항] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("특수 고려사항이 있나요? (필요하면 선택)", fontSize = 20.sp)
+                    Text("특수사항 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     specialConsiderations.forEach { option ->
                         val containerColor =
@@ -213,17 +220,19 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -259,14 +268,14 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
 fun AccommodationPreferenceScreen(navController: NavHostController) {
     // 숙소 스타일 옵션: 메인 옵션과 해당 세부 옵션
     val accommodationStyleMap = mapOf(
-        "가성비" to listOf("게스트하우스", "펜션", "모텔"),
+        "가성비" to listOf("게스트 하우스", "펜션", "모텔"),
         "고급" to listOf("호텔", "리조트", "럭셔리 빌라"),
-        "특수" to listOf("한옥", "글램핑", "전원주택")
+        "특수" to listOf("한옥", "글램핑", "전원 주택")
     )
     // 숙소 위치 옵션 (단일 선택)
     val accommodationLocationOptions = listOf(
-        "관광지에서 가까운 곳 (도보 이동 가능)",
-        "시내 중심 (대중교통 편리)",
+        "관광지 근처",
+        "시내 중심",
         "한적한 곳 (자연 속 숙소)",
         "상관없음"
     )
@@ -298,10 +307,11 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
         // 화면 제목
         Text(
             text = "숙소 취향 설정",
-            fontSize = 32.sp,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
-
+        Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -311,7 +321,7 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
             // [숙소 스타일] 섹션 (한 개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("숙소 스타일 (한 개 선택)", fontSize = 20.sp)
+                    Text("숙소 스타일", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     // 메인 옵션: 한 줄씩 표시
                     accommodationStyleMap.keys.toList().forEach { option ->
@@ -325,12 +335,13 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                         // 세부 옵션: 선택된 메인 옵션에 대해 Row로 표시
@@ -349,13 +360,14 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                                         colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
+                                            .height(65.dp)
                                             .padding(vertical = 2.dp),
                                         shape = RoundedCornerShape(4.dp)
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 14.sp
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
@@ -368,7 +380,7 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
             // [숙소 위치] 섹션 (한 개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("숙소 위치 (한 개 선택)", fontSize = 20.sp)
+                    Text("숙소 위치", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     accommodationLocationOptions.forEach { option ->
                         val containerColor =
@@ -378,12 +390,13 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
@@ -393,7 +406,7 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
             // [부가 시설 선택] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("부가 시설 선택 (필요하면 선택)", fontSize = 20.sp)
+                    Text("부가 시설 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     additionalFacilitiesOptions.forEach { option ->
                         val containerColor =
@@ -409,19 +422,20 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -457,7 +471,7 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
         "프랜차이즈",
         "가성비 좋은 식당",
         "고급 레스토랑",
-        "카페식 가벼운 식사 (샐러드, 브런치)",
+        "카페식 가벼운 식사",
         "상관없음"
     )
     // 식당 위치 옵션 (단일 선택)
@@ -469,9 +483,9 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
     )
     // 특수 조건 옵션 (멀티 선택)
     val specialConditionsOptions = listOf(
-        "반려동물 동반 가능해야 함",
+        "반려동물 동반 가능",
         "아이 동반 가능 (놀이 공간)",
-        "노약자에게 편한 자리 (의자, 접근성)",
+        "노약자에게 편한 자리",
         "예약 필수 식당 선호",
         "상관없음"
     )
@@ -494,9 +508,11 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
         // 화면 제목
         Text(
             text = "식사 취향 설정",
-            fontSize = 32.sp,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
+        Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -506,7 +522,7 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
             // [식사 스타일] 섹션 (최대 2개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("식사 스타일 (최대 2개 선택)", fontSize = 20.sp)
+                    Text("식사 스타일 (2개 선택)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     mealStyleOptions.forEach { option ->
                         val containerColor =
@@ -524,12 +540,13 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
@@ -539,7 +556,7 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
             // [식당 위치] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("식당 위치 (한 개 선택)", fontSize = 20.sp)
+                    Text("식당 위치", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     restaurantLocationOptions.forEach { option ->
                         val containerColor =
@@ -549,12 +566,13 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
@@ -564,7 +582,7 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
             // [특수 조건] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("특수 조건 (필요하면 선택)", fontSize = 20.sp)
+                    Text("특수 조건 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     specialConditionsOptions.forEach { option ->
                         val containerColor =
@@ -580,19 +598,20 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
-
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -620,17 +639,19 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
 fun TravelTimePreferenceScreen(navController: NavHostController) {
     // 여행 시작 시간 옵션 (단일 선택)
     val startTimeOptions = listOf(
-        "아침 일찍 (7~8시)",
-        "보통 아침 (9~10시)",
-        "여유롭게 늦게 출발 (11~12시 이후)"
+        "오전 7 ~ 8 시",
+        "오전 9 ~ 10 시",
+        "오전 11 시 이후",
+        "상관없음"
     )
     val selectedStartTime = remember { mutableStateOf("") }
 
     // 여행 종료 시간 옵션 (단일 선택)
     val endTimeOptions = listOf(
-        "저녁 6~7시쯤 (조금 일찍 끝내기)",
-        "밤 8~9시쯤 (적당한 마무리)",
-        "늦게까지 가능 (야경, 밤 코스 포함)"
+        "오후 6 ~ 7 시",
+        "오후 8 ~ 9 시",
+        "늦게까지 가능",
+        "상관없음"
     )
     val selectedEndTime = remember { mutableStateOf("") }
 
@@ -647,9 +668,11 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
         // 화면 제목
         Text(
             text = "여행 시간 설정",
-            fontSize = 32.sp,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
+        Spacer(modifier = Modifier.height(8.dp))
         // 스크롤 영역 (weight를 사용해 하단 버튼이 항상 보이도록)
         Column(
             modifier = Modifier
@@ -660,7 +683,7 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
             // [여행 시작 시간] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 시작 시간 (한 개 선택)", fontSize = 18.sp)
+                    Text("여행 시작 시간", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     startTimeOptions.forEach { option ->
                         val containerColor =
@@ -670,12 +693,13 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
@@ -684,7 +708,7 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
             // [여행 종료 시간] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 종료 시간 (한 개 선택)", fontSize = 18.sp)
+                    Text("여행 종료 시간", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     endTimeOptions.forEach { option ->
                         val containerColor =
@@ -694,17 +718,19 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .padding(vertical = 4.dp)
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 16.sp
+                                fontSize = 24.sp
                             )
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly

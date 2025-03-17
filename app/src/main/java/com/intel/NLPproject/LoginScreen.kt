@@ -136,6 +136,10 @@ fun PhoneLoginScreen(navController: NavController) {
     val isCodeSent = remember { mutableStateOf(false) }
     // 전화번호 오류 상태
     val showPhoneError = remember { mutableStateOf(false) }
+    val name = remember { mutableStateOf("") }
+    val birthDate = remember { mutableStateOf("") }
+    val gender = remember { mutableStateOf("") }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -419,10 +423,6 @@ fun NaverLoginButton(
                             ).show()
                         }
                     }
-                } else {
-                    Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
-                }
-            }
 
                     override fun onFailure(httpStatus: Int, message: String) {
                         val errorCode = NaverIdLoginSDK.getLastErrorCode().code

@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp(navController: NavHostController) {
 
 
-    AnimatedNavHost(
+    NavHost(
         navController = navController,
         startDestination = "splash",
         enterTransition = { fadeIn(animationSpec = tween(0)) },

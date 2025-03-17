@@ -47,6 +47,10 @@ import androidx.navigation.NavHostController
 import com.intel.NLPproject.TokenManager.getCurrentUserId
 import com.intel.NLPproject.firebase.AttractionDatabase
 
+// 데이터 클래스는 WebCrawlApiService.kt에 정의되어 있음
+// data class WebCrawlResponse(val query: String, val results: List<CrawlResult>)
+// data class CrawlResult(val title: String, val description: String)
+
 @Composable
 fun RecommendAttractionScreen(navController: NavHostController) {
     var showDescriptionDialog by remember { mutableStateOf(false) }
@@ -368,6 +372,5 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
         ) {
             Text("메인화면으로")
         }
-
     }
 }

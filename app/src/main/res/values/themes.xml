@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.SeniorTravelGuide" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SeniorTravelGuide" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/my_color</item>
+        <item name="android:colorPrimaryDark">@color/my_color</item>
+        <item name="android:colorAccent">@color/my_color</item>
+        <item name="android:buttonStyle">@style/CustomButtonStyle</item>
+    </style>
+
+    <!-- DatePickerDialog용 커스텀 스타일 추가 -->
+    <style name="MyDatePickerDialogTheme" parent="android:Theme.Material.Light.Dialog.Alert">
+        <item name="android:colorAccent">@color/my_color</item>
+    </style>
+
 </resources>

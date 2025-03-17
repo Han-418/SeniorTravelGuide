@@ -181,7 +181,6 @@ fun PhoneLoginScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 로그인 버튼 클릭 인증 코드 발송
         Button(onClick = {
             if (phoneNumber.value.length != 11 || !phoneNumber.value.startsWith("010")) {
                 showPhoneError.value = true
@@ -197,7 +196,6 @@ fun PhoneLoginScreen(navController: NavController) {
         }) {
             Text("인증코드 받기")
         }
-        // OTP 입력 및 인증 코드 확인 UI (OTP 발송 후 표시)
         if (isCodeSent.value) {
             OutlinedTextField(
                 value = otpCode.value,
@@ -216,32 +214,54 @@ fun PhoneLoginScreen(navController: NavController) {
                     navController
                 ) {
                     auth.currentUser?.let { user ->
-                        // 신규 사용자일 경우 최소한 전화번호 정보를 저장
-                        val newUserInfo = UserInfo(
+                        // 전화번호는 입력값(예: "3333-5678")을 받아서, 저장 시 +8210이 붙은 형식으로 변환
+                        val formattedPhone =
+                            formatPhoneNumber(phoneNumber.value) // 예: "3333-5678" -> "+821033335555"
+
+                        // 유저 정보를 담은 data class 인스턴스를 생성 (UserInfo는 미리 정의된 모델 클래스)
+                        val userInfo = UserInfo(
                             uid = user.uid,
-                            name = "",      // 추가 정보가 필요하면 추후 입력받거나 별도 화면 구현
-                            birthDate = "",
-                            gender = "",
-                            phoneNumber = formatPhoneNumber(phoneNumber.value)
+                            name = name.value,
+                            birthDate = birthDate.value,
+                            gender = gender.value,
+                            phoneNumber = formattedPhone
                         )
-                        UserInfoDatabase().saveUserInfo(newUserInfo) { success ->
+
+                        // 유저 정보를 데이터베이스에 저장
+                        UserInfoDatabase().saveUserInfo(userInfo) { success ->
                             if (success) {
-                                Log.d("UserInfo", "유저 정보 저장 성공")
-                                navController.navigate("main")
+                                Log.d("UserInfo", "User info saved successfully")
                             } else {
-                                Log.e("UserInfo", "유저 정보 저장 실패")
+                                Log.e("UserInfo", "Failed to save user info")
                             }
                         }
                     }
                 }
             }) {
-                Text("인증 코드 확인 및 로그인")
+                Text("로그인")
             }
         }
     }
 }
 
-// 입력받은 전화번호를 "+8210XXXXXXX" 형식으로 포맷팅하는 함수
+@Composable
+fun PhoneNumberInput(phoneNumber: MutableState<String>) {
+    OutlinedTextField(
+        value = phoneNumber.value,
+        onValueChange = { newValue ->
+            // 숫자만 입력하도록 필터링
+            val digits = newValue.filter { it.isDigit() }
+            // 최대 8자리까지만 입력 가능
+            val limitedDigits = if (digits.length > 8) digits.take(8) else digits
+            // 자동 포맷팅 없이 숫자만 저장
+            phoneNumber.value = limitedDigits
+        },
+        label = { Text("전화번호 뒷자리 8개 입력(숫자만)") },
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        singleLine = true
+    )
+}
+
 fun formatPhoneNumber(phoneNumber: String): String {
     // 모든 숫자만 남김 (예: "010-3333-3333" → "01033333333")
     val cleanedNumber = phoneNumber.filter { it.isDigit() }
@@ -250,6 +270,35 @@ fun formatPhoneNumber(phoneNumber: String): String {
         "+82" + cleanedNumber.substring(1)
     } else {
         ""
+    }
+}
+
+@Composable
+fun GenderSelection(gender: MutableState<String>) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "성별 선택", fontSize = 20.sp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = gender.value == "남성",
+                    onClick = { gender.value = "남성" }
+                )
+                Text(text = "남성", modifier = Modifier.padding(start = 4.dp))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = gender.value == "여성",
+                    onClick = { gender.value = "여성" }
+                )
+                Text(text = "여성", modifier = Modifier.padding(start = 4.dp))
+            }
+        }
     }
 }
 
@@ -370,6 +419,10 @@ fun NaverLoginButton(
                             ).show()
                         }
                     }
+                } else {
+                    Toast.makeText(context, "네이버 로그인 성공했지만 액세스 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
 
                     override fun onFailure(httpStatus: Int, message: String) {
                         val errorCode = NaverIdLoginSDK.getLastErrorCode().code

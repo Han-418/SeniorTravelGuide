@@ -1,6 +1,12 @@
 package com.intel.NLPproject.firebase
 
+import android.widget.Toast
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.database.FirebaseDatabase
+import com.intel.NLPproject.TokenManager
 import com.intel.NLPproject.models.UserInfo
 
 class UserInfoDatabase {
@@ -21,19 +27,16 @@ class UserInfoDatabase {
             .addOnFailureListener { onComplete(false) }
     }
 
-    // 저장된 사용자 정보를 모두 조회
-    fun getUserInfos(onResult: (List<UserInfo>) -> Unit) {
-        db.get().addOnSuccessListener { snapshot ->
-            val userInfos = snapshot.children.mapNotNull { child ->
-                val uid = child.child("uid").getValue(String::class.java) ?: ""
-                val name = child.child("name").getValue(String::class.java) ?: "이름 없음"
-                val birthDate = child.child("birthDate").getValue(String::class.java) ?: "생년월일 없음"
-                val gender = child.child("gender").getValue(String::class.java) ?: "성별 미정"
-                val phoneNumber = child.child("phoneNumber").getValue(String::class.java) ?: "전화번호 없음"
-                UserInfo(uid = uid, name = name, birthDate = birthDate, gender = gender, phoneNumber = phoneNumber)
+    // 특정 uid의 사용자 정보를 조회하는 함수
+    fun getUserInfo(uid: String, onComplete: (UserInfo?) -> Unit) {
+        db.child(uid).get()
+            .addOnSuccessListener { snapshot ->
+                val userInfo = snapshot.getValue(UserInfo::class.java)
+                onComplete(userInfo)
             }
-            onResult(userInfos)
-        }
+            .addOnFailureListener {
+                onComplete(null)
+            }
     }
 
     // 특정 사용자 정보를 삭제 (UID로 삭제)

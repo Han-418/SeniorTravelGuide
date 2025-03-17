@@ -38,7 +38,10 @@ fun sendVerificationCode(
                 Log.e("PhoneAuth", "인증 실패: ${e.message}")
             }
 
-            override fun onCodeSent(verificationIdReceived: String, token: PhoneAuthProvider.ForceResendingToken) {
+            override fun onCodeSent(
+                verificationIdReceived: String,
+                token: PhoneAuthProvider.ForceResendingToken
+            ) {
                 verificationId.value = verificationIdReceived
                 isCodeSent.value = true
                 Log.d("PhoneAuth", "인증 코드 전송됨!")
@@ -63,7 +66,7 @@ fun verifyCode(
             if (task.isSuccessful) {
                 Log.d("PhoneAuth", "로그인 성공!")
                 onSuccess()
-                navController.navigate("main") {
+                navController.navigate("first") {
                     popUpTo("login") { inclusive = true }
                 }
             } else {

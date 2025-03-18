@@ -1065,7 +1065,6 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
                     fontFamily = myFontFamily,
                     modifier = Modifier.offset(y = (-2).dp)
                 )
-
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

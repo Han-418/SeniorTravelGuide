@@ -1,19 +1,25 @@
 package com.intel.NLPproject
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,7 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -42,22 +52,38 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
 
     // 선택된 숙소 목록을 저장 (다중 선택 가능)
     val selectedAccommodations = remember { mutableStateListOf<String>() }
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
+
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(top = 10.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            text = "추천 숙소",
-            fontSize = 32.sp
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "숙소 추천 목록",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .height(550.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -92,13 +118,10 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
             }
         }
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-            ) {
-                Text("뒤로가기")
-            }
             // 선택한 숙소 목록만 저장하고 다음 화면으로 이동
             Button(
                 onClick = {
@@ -126,17 +149,52 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
                         Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
                     }
                 },
+                modifier = Modifier
+                    .width(330.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text(text = "저장 후 식당")
+                Text(
+                    text = "숙소 확정",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
-        Button(
-            onClick = {
-                navController.navigate("first")
-            }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Text("메인화면으로")
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
+            Button(
+                onClick = {
+                    navController.navigate("first")
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
+            ) {
+                Text(
+                    text = "메인화면으로",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
+            }
         }
-
     }
 }

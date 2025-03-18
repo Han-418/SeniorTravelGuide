@@ -346,7 +346,6 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
         Font(R.font.notoserifkrblack)
     )
 
-
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -496,6 +495,5 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
                 )
             }
         }
-
     }
 }

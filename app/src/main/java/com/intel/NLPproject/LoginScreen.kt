@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -60,68 +61,160 @@ import org.json.JSONObject
 import java.io.IOException
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen(
+    onKakaoLoginSuccess: (String) -> Unit,
+    onKakaoLoginError: (Throwable) -> Unit,
+    onLoginSuccess: (accessToken: String) -> Unit = {},
+    navController: NavHostController
+) {
     val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val activity = context as? Activity ?: return
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // 카카오 로그인 성공/실패 처리를 위한 콜백
-        val onKakaoLoginSuccess: (String) -> Unit = { accessToken ->
-            // accessToken을 이용해 서버와 통신하거나, 다음 화면으로 이동하는 로직 작성
-            Log.d("KakaoLogin", "카카오 로그인 성공! AccessToken: $accessToken")
-
-            // 예: 로그인 성공 후 메인 화면으로 이동
-            navController.navigate("first") {
-                popUpTo("login") { inclusive = true }
-            }
-        }
-        val onKakaoLoginError: (Throwable) -> Unit = { error ->
-            Log.e("KakaoLogin", "카카오 로그인 실패: ${error.message}")
-            // 에러 메시지 표시 등 처리
-            Toast.makeText(context, "카카오 로그인 실패: ${error.message}", Toast.LENGTH_SHORT).show()
-        }
-        Text("여행한잔", fontSize = 50.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Image(
+            painter = painterResource(R.drawable.loginscr),
+            contentDescription = "background",
+            modifier = Modifier.fillMaxSize()
+        )
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .padding(16.dp)
-                .background(color = Color.LightGray),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .fillMaxSize()
+                .systemBarsPadding()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("app icon")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+            Image(
+                painter = painterResource(R.drawable.phonelogin2),
+                contentDescription = "phone login",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                    navController.navigate("phoneLogin")
+                }
+            )
+            Image(
+                painter = painterResource(R.drawable.kakaologin),
+                contentDescription = "kakao login",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                    UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+                        if (error != null) {
+                            onKakaoLoginError(error)
+                        } else if (token != null) {
+                            UserApiClient.instance.me { user, error ->
+                                if (error != null) {
+                                    onKakaoLoginError(error)
+                                } else if (user != null) {
+                                    // 안정적인 고유 식별자인 user.id 사용하여 UID 생성
+                                    val stableUid = "kakao_${user.id}"
+                                    // 실제 사용자 닉네임
+                                    val nickname =
+                                        user.kakaoAccount?.profile?.nickname ?: "Kakao User"
+                                    val userInfo = UserInfo(
+                                        uid = stableUid,
+                                        name = "카카오_$nickname",
+                                        birthDate = "",
+                                        gender = "",
+                                        phoneNumber = ""
+                                    )
+                                    // 카카오 로그인 성공 시, 다른 소셜(네이버) 토큰 클리어
+                                    TokenManager.naverAccessToken = null
+                                    saveStableUid(context, "naver_stable_uid", null)
+                                    // 그리고 카카오 stable UID 저장
+                                    TokenManager.kakaoAccessToken = stableUid
+                                    saveStableUid(context, "kakao_stable_uid", stableUid)
+                                    UserInfoDatabase().saveUserInfo(userInfo) { success ->
+                                        if (success) {
+                                            onKakaoLoginSuccess(token.accessToken)
+                                        } else {
+                                            onKakaoLoginError(Throwable("사용자 정보 저장 실패"))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+            Image(
+                painter = painterResource(R.drawable.naverlogin2),
+                contentDescription = "naver login",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable {
+                    val oauthLoginCallback = object : OAuthLoginCallback {
+                        override fun onSuccess() {
+                            val accessToken = NaverIdLoginSDK.getAccessToken()
+                            if (accessToken != null) {
+                                // 네이버 사용자 정보 API를 호출하여 ID와 이름 가져오기
+                                fetchNaverUserInfo(accessToken) { id, name ->
+                                    if (id != null) {
+                                        val stableUid = "naver_$id"
+                                        val userInfo = UserInfo(
+                                            uid = stableUid,
+                                            name = "네이버_${name ?: "Naver User"}",
+                                            birthDate = "",
+                                            gender = "",
+                                            phoneNumber = ""
+                                        )
+                                        // 네이버 로그인 시, 카카오 토큰 클리어
+                                        TokenManager.kakaoAccessToken = null
+                                        saveStableUid(context, "kakao_stable_uid", null)
+                                        // 그리고 네이버 stable UID 저장
+                                        TokenManager.naverAccessToken = stableUid
+                                        saveStableUid(context, "naver_stable_uid", stableUid)
+                                        UserInfoDatabase().saveUserInfo(userInfo) { success ->
+                                            if (success) {
+                                                onLoginSuccess(accessToken)
+                                                navController.navigate("first") {
+                                                    popUpTo("login") { inclusive = true }
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "사용자 정보 저장 실패",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "네이버 사용자 정보를 불러오지 못했습니다.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "네이버 로그인 성공했지만 액세스 토큰이 없습니다.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
 
-        OutlinedButton(
-            onClick = {
-                navController.navigate("phoneLogin")
-            },
-            modifier = Modifier
-                .height(50.dp)
-                .width(300.dp),
-            shape = RectangleShape
-        ) {
-            Text("전화번호로 로그인")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        KakaoLoginButton(
-            onSuccess = onKakaoLoginSuccess,
-            onError = onKakaoLoginError
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // 네이버 로그인 버튼
-        NaverLoginButton(navController = navController) { accessToken ->
-            // 로그인 성공 후 추가 작업이 필요하면 이곳에서 처리
-            // 예: Log.d("NaverLogin", "AccessToken: $accessToken")
+                        override fun onFailure(httpStatus: Int, message: String) {
+                            val errorCode = NaverIdLoginSDK.getLastErrorCode().code
+                            val errorDescription = NaverIdLoginSDK.getLastErrorDescription()
+                            Toast.makeText(
+                                context,
+                                "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        override fun onError(errorCode: Int, message: String) {
+                            onFailure(errorCode, message)
+                        }
+                    }
+                    NaverIdLoginSDK.authenticate(activity, oauthLoginCallback)
+                }
+            )
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -139,7 +232,6 @@ fun PhoneLoginScreen(navController: NavController) {
     val name = remember { mutableStateOf("") }
     val birthDate = remember { mutableStateOf("") }
     val gender = remember { mutableStateOf("") }
-
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -248,24 +340,6 @@ fun PhoneLoginScreen(navController: NavController) {
     }
 }
 
-@Composable
-fun PhoneNumberInput(phoneNumber: MutableState<String>) {
-    OutlinedTextField(
-        value = phoneNumber.value,
-        onValueChange = { newValue ->
-            // 숫자만 입력하도록 필터링
-            val digits = newValue.filter { it.isDigit() }
-            // 최대 8자리까지만 입력 가능
-            val limitedDigits = if (digits.length > 8) digits.take(8) else digits
-            // 자동 포맷팅 없이 숫자만 저장
-            phoneNumber.value = limitedDigits
-        },
-        label = { Text("전화번호 뒷자리 8개 입력(숫자만)") },
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-        singleLine = true
-    )
-}
-
 fun formatPhoneNumber(phoneNumber: String): String {
     // 모든 숫자만 남김 (예: "010-3333-3333" → "01033333333")
     val cleanedNumber = phoneNumber.filter { it.isDigit() }
@@ -275,172 +349,6 @@ fun formatPhoneNumber(phoneNumber: String): String {
     } else {
         ""
     }
-}
-
-@Composable
-fun GenderSelection(gender: MutableState<String>) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "성별 선택", fontSize = 20.sp)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(top = 8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = gender.value == "남성",
-                    onClick = { gender.value = "남성" }
-                )
-                Text(text = "남성", modifier = Modifier.padding(start = 4.dp))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = gender.value == "여성",
-                    onClick = { gender.value = "여성" }
-                )
-                Text(text = "여성", modifier = Modifier.padding(start = 4.dp))
-            }
-        }
-    }
-}
-
-@Composable
-fun KakaoLoginButton(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
-    val context = LocalContext.current
-
-    Image(
-        painter = painterResource(R.drawable.kakao_login_medium_wide),
-        contentDescription = "kakao login",
-        modifier = Modifier
-            .width(300.dp)
-            .height(50.dp)
-            .clickable {
-                UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
-                    if (error != null) {
-                        onError(error)
-                    } else if (token != null) {
-                        UserApiClient.instance.me { user, error ->
-                            if (error != null) {
-                                onError(error)
-                            } else if (user != null) {
-                                // 안정적인 고유 식별자인 user.id 사용하여 UID 생성
-                                val stableUid = "kakao_${user.id}"
-                                // 실제 사용자 닉네임
-                                val nickname = user.kakaoAccount?.profile?.nickname ?: "Kakao User"
-                                val userInfo = UserInfo(
-                                    uid = stableUid,
-                                    name = "카카오_$nickname",
-                                    birthDate = "",
-                                    gender = "",
-                                    phoneNumber = ""
-                                )
-                                // 카카오 로그인 성공 시, 다른 소셜(네이버) 토큰 클리어
-                                TokenManager.naverAccessToken = null
-                                saveStableUid(context, "naver_stable_uid", null)
-                                // 그리고 카카오 stable UID 저장
-                                TokenManager.kakaoAccessToken = stableUid
-                                saveStableUid(context, "kakao_stable_uid", stableUid)
-                                UserInfoDatabase().saveUserInfo(userInfo) { success ->
-                                    if (success) {
-                                        onSuccess(token.accessToken)
-                                    } else {
-                                        onError(Throwable("사용자 정보 저장 실패"))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-    )
-}
-
-@Composable
-fun NaverLoginButton(
-    navController: NavHostController,
-    onLoginSuccess: (accessToken: String) -> Unit = {}
-) {
-    val context = LocalContext.current
-    val activity = context as? Activity ?: return
-
-    Image(
-        painter = painterResource(R.drawable.naverlogin),
-        contentDescription = "naver login",
-        modifier = Modifier
-            .height(50.dp)
-            .width(300.dp)
-            .clickable {
-                val oauthLoginCallback = object : OAuthLoginCallback {
-                    override fun onSuccess() {
-                        val accessToken = NaverIdLoginSDK.getAccessToken()
-                        if (accessToken != null) {
-                            // 네이버 사용자 정보 API를 호출하여 ID와 이름 가져오기
-                            fetchNaverUserInfo(accessToken) { id, name ->
-                                if (id != null) {
-                                    val stableUid = "naver_$id"
-                                    val userInfo = UserInfo(
-                                        uid = stableUid,
-                                        name = "네이버_${name ?: "Naver User"}",
-                                        birthDate = "",
-                                        gender = "",
-                                        phoneNumber = ""
-                                    )
-                                    // 네이버 로그인 시, 카카오 토큰 클리어
-                                    TokenManager.kakaoAccessToken = null
-                                    saveStableUid(context, "kakao_stable_uid", null)
-                                    // 그리고 네이버 stable UID 저장
-                                    TokenManager.naverAccessToken = stableUid
-                                    saveStableUid(context, "naver_stable_uid", stableUid)
-                                    UserInfoDatabase().saveUserInfo(userInfo) { success ->
-                                        if (success) {
-                                            onLoginSuccess(accessToken)
-                                            navController.navigate("first") {
-                                                popUpTo("login") { inclusive = true }
-                                            }
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "사용자 정보 저장 실패",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "네이버 사용자 정보를 불러오지 못했습니다.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "네이버 로그인 성공했지만 액세스 토큰이 없습니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-                    override fun onFailure(httpStatus: Int, message: String) {
-                        val errorCode = NaverIdLoginSDK.getLastErrorCode().code
-                        val errorDescription = NaverIdLoginSDK.getLastErrorDescription()
-                        Toast.makeText(
-                            context,
-                            "네이버 로그인 실패: errorCode:$errorCode, errorDesc:$errorDescription",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                    override fun onError(errorCode: Int, message: String) {
-                        onFailure(errorCode, message)
-                    }
-                }
-                NaverIdLoginSDK.authenticate(activity, oauthLoginCallback)
-            }
-    )
 }
 
 fun fetchNaverUserInfo(accessToken: String, onResult: (id: String?, name: String?) -> Unit) {

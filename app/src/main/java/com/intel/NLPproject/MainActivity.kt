@@ -4,6 +4,7 @@ package com.intel.NLPproject
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,13 +12,9 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,43 +23,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -70,7 +55,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.intel.NLPproject.ui.theme.SeniorTravelGuideTheme
 import java.time.LocalDate
@@ -101,7 +85,19 @@ fun MyApp(navController: NavHostController) {
         popExitTransition = { fadeOut(animationSpec = tween(0)) }
     ) {
         composable("splash") { SplashScreen(navController) }
-        composable("login") { LoginScreen(navController) }
+        composable("login") { navBackStackEntry ->
+            LoginScreen(
+                onKakaoLoginSuccess = { accessToken ->
+                    // 카카오 로그인 성공 시 처리 (예: 로그 출력, 추가 동작 등)
+                    Log.d("LoginScreen", "카카오 로그인 성공! AccessToken: $accessToken")
+                },
+                onKakaoLoginError = { error ->
+                    // 카카오 로그인 실패 시 처리 (예: 에러 로그, 사용자 알림 등)
+                    Log.e("LoginScreen", "카카오 로그인 실패: ${error.message}")
+                },
+                navController = navController
+            )
+        }
         composable("phoneLogin") { PhoneLoginScreen(navController) }
         composable("main") { MainScreen(navController) }
         composable("recommendAttraction") { RecommendAttractionScreen(navController) }
@@ -122,160 +118,233 @@ fun MyApp(navController: NavHostController) {
             LoadingScreen(navController, destination = destination)
         }
         composable("first") { FirstScreen(navController) }
+        composable("question") { QuestionScreen(navController) }
     }
 }
 
 @Composable
 fun MainScreen(navController: NavHostController) {
-    // 각 질문별 옵션 목록
-    val destinationOptions = listOf(
-        "직접 입력",
-        "경상도",
-        "강원도",
-        "제주도",
-        "전라도",
-        "충청도"
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
     )
-    val companionOptions = listOf(
-        "혼자",
-        "부부/커플",
-        "가족들과",
-        "부모님과",
-        "친구들과"
-    )
-    val transportationOptions = listOf(
-        "자가용",
-        "기차",
-        "버스",
-        "비행기",
-        "상관없음"
-    )
-    val budgetOptions = listOf(
-        "저렴하게",
-        "평균적",
-        "상관없음"
-    )
-    val subregionOptionsMap = mapOf(
-        "경상도" to listOf("부산", "대구", "울산", "포항", "경주", "안동"),
-        "강원도" to listOf("강릉", "속초", "원주", "춘천", "동해", "양양"),
-        "제주도" to listOf("제주시", "서귀포시", "애월읍", "한림읍", "우도면", "성산읍"),
-        "전라도" to listOf("전주", "광주", "순천", "여수", "목포", "곡성"),
-        "충청도" to listOf("대전", "청주", "천안", "논산", "보령", "괴산")
-    )
-    // 각 질문의 선택 상태
-    val selectedDestination = remember { mutableStateOf("") }
-    val selectedCompanion = remember { mutableStateOf("") }
-    val selectedTransportation = remember { mutableStateOf("") }
-    val selectedBudget = remember { mutableStateOf("") }
-    // 직접 입력 다이얼로그를 위한 상태
-    val showCustomInputDialog = remember { mutableStateOf(false) }
-    val customDestinationInput = remember { mutableStateOf("") }
-    val selectedDeparture = remember { mutableStateOf<LocalDate?>(null) }
-    val selectedReturn = remember { mutableStateOf<LocalDate?>(null) }
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(10.dp)
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("여행한잔", fontSize = 50.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(30.dp))
-
-        // 질문 1: 목적지 선택 (부산/경상권 등 서브 옵션 포함)
-        GridCascadingQuestion(
-            question = "어디로 가실래요?",
-            options = destinationOptions,
-            subOptionsMap = subregionOptionsMap,
-            selectedOption = selectedDestination
-        )
-        // "직접 입력" 옵션 선택 시 다이얼로그 띄우기
-        if (selectedDestination.value == "직접 입력" && !showCustomInputDialog.value) {
-            showCustomInputDialog.value = true
-        }
-        if (showCustomInputDialog.value) {
-            AlertDialog(
-                onDismissRequest = {
-                    showCustomInputDialog.value = false
-                    // 취소 시 selectedDestination 초기화
-                    selectedDestination.value = ""
-                },
-                title = { Text("목적지 직접 입력") },
-                text = {
-                    Column {
-                        Text("여행 가고 싶은 곳을 입력하세요:")
-                        OutlinedTextField(
-                            value = customDestinationInput.value,
-                            onValueChange = { customDestinationInput.value = it },
-                            placeholder = { Text("예: 서울, 부산, 제주 등") }
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
-                            selectedDestination.value = customDestinationInput.value
-                            showCustomInputDialog.value = false
-                        }
-                    ) {
-                        Text("확인")
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = {
-                            showCustomInputDialog.value = false
-                            // 취소 시에도 selectedDestination 값을 초기화하여 다이얼로그가 재발동되지 않도록 함
-                            selectedDestination.value = ""
-                        }
-                    ) {
-                        Text("취소")
-                    }
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700))
+        ) {
+            Image(
+                painter = painterResource(R.drawable.logo),
+                contentDescription = "top logo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = 22.dp)
             )
         }
-        // 질문 2: 여행 기간 선택 (출발, 도착)
-        TravelPeriodQuestion(
-            question = "여행 기간은 어떻게 되시나요?",
-            selectedDeparture = selectedDeparture,
-            selectedReturn = selectedReturn
-        )
-        // 질문 3: 누구와 함께 가세요?
-        GridQuestion(
-            question = "누구와 함께 가세요?",
-            options = companionOptions,
-            selectedOption = selectedCompanion
-        )
-        // 질문 4: 이동 방법은?
-        GridQuestion(
-            question = "이동 방법은?",
-            options = transportationOptions,
-            selectedOption = selectedTransportation
-        )
-        // 질문 5: 예산은 어느 정도 생각하세요?
-        GridQuestion(
-            question = "예산은 어느 정도 생각하세요?",
-            options = budgetOptions,
-            selectedOption = selectedBudget
-        )
-
-        Spacer(modifier = Modifier.size(30.dp))
-        Row {
-            LogoutButton(navController)
-            Spacer(modifier = Modifier.size(16.dp))
-            Button(
-                onClick = {
-                    // 모든 질문 선택 완료 후 결과 페이지로 이동
-                    navController.navigate("loading/recommendAttraction")
-                }
-            ) {
-                Text("제출하기")
-            }
+        Spacer(modifier = Modifier.height(80.dp))
+        // button1
+        Button(
+            onClick = {
+                navController.navigate("question")
+            },
+            modifier = Modifier
+                .width(330.dp)
+                .height(49.dp),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text("어디로 여행을 떠나시나요?", fontSize = 21.sp, color = Color.Black, fontFamily = myFontFamily)
         }
+        Spacer(modifier = Modifier.height(33.dp))
+        // button2
+        Button(
+            onClick = {
+            },
+            modifier = Modifier
+                .width(330.dp)
+                .height(49.dp),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text(
+                "여행 기간이 어떻게 되시나요?",
+                fontSize = 21.sp,
+                color = Color.Black,
+                fontFamily = myFontFamily
+            )
+        }
+        Spacer(modifier = Modifier.height(33.dp))
+        // button3
+        Button(
+            onClick = {
+            },
+            modifier = Modifier
+                .width(330.dp)
+                .height(49.dp),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text("누구와 함께 가시나요?", fontSize = 21.sp, color = Color.Black, fontFamily = myFontFamily)
+        }
+        Spacer(modifier = Modifier.height(33.dp))
+        // button4
+        Button(
+            onClick = {
+            },
+            modifier = Modifier
+                .width(330.dp)
+                .height(49.dp),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text(
+                "이동수단은 어떻게 되시나요?",
+                fontSize = 21.sp,
+                color = Color.Black,
+                fontFamily = myFontFamily
+            )
+        }
+        Spacer(modifier = Modifier.height(33.dp))
+        // button5
+        Button(
+            onClick = {
+            },
+            modifier = Modifier
+                .width(330.dp)
+                .height(49.dp),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text("예산은 어떻게 생각하세요?", fontSize = 21.sp, color = Color.Black, fontFamily = myFontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Button(
+            onClick = {
+                // 모든 질문 선택 완료 후 결과 페이지로 이동
+                navController.navigate("loading/recommendAttraction")
+            },
+            modifier = Modifier
+                .width(247.dp)
+                .height(48.dp),
+            shape = RoundedCornerShape(100.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF20574), // 버튼 배경색 (예: my_color 값)
+                contentColor = Color.White           // 버튼 텍스트 색상
+            )
+        ) {
+            Text("AI 추천 받기", fontSize = 21.sp, color = Color(0xFFFFFFFF), fontFamily = myFontFamily)
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(
+            onClick = {
+                navController.popBackStack()
+            },
+            modifier = Modifier
+                .width(247.dp)
+                .height(48.dp),
+            shape = RoundedCornerShape(100.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF20574), // 버튼 배경색 (예: my_color 값)
+                contentColor = Color.White           // 버튼 텍스트 색상
+            )
+        ) {
+            Text("뒤로가기", fontSize = 21.sp, fontFamily = myFontFamily, color = Color(0xFFFFFFFF))
+        }
+
+
+//        // 질문 1: 목적지 선택 (부산/경상권 등 서브 옵션 포함)
+//        GridCascadingQuestion(
+//            question = "어디로 가실래요?",
+//            options = destinationOptions,
+//            subOptionsMap = subregionOptionsMap,
+//            selectedOption = selectedDestination
+//        )
+//        // "직접 입력" 옵션 선택 시 다이얼로그 띄우기
+//        if (selectedDestination.value == "직접 입력" && !showCustomInputDialog.value) {
+//            showCustomInputDialog.value = true
+//        }
+//        if (showCustomInputDialog.value) {
+//            AlertDialog(
+//                onDismissRequest = {
+//                    showCustomInputDialog.value = false
+//                    // 취소 시 selectedDestination 초기화
+//                    selectedDestination.value = ""
+//                },
+//                title = { Text("목적지 직접 입력") },
+//                text = {
+//                    Column {
+//                        Text("여행 가고 싶은 곳을 입력하세요:")
+//                        OutlinedTextField(
+//                            value = customDestinationInput.value,
+//                            onValueChange = { customDestinationInput.value = it },
+//                            placeholder = { Text("예: 서울, 부산, 제주 등") }
+//                        )
+//                    }
+//                },
+//                confirmButton = {
+//                    Button(
+//                        onClick = {
+//                            // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
+//                            selectedDestination.value = customDestinationInput.value
+//                            showCustomInputDialog.value = false
+//                        }
+//                    ) {
+//                        Text("확인")
+//                    }
+//                },
+//                dismissButton = {
+//                    Button(
+//                        onClick = {
+//                            showCustomInputDialog.value = false
+//                            // 취소 시에도 selectedDestination 값을 초기화하여 다이얼로그가 재발동되지 않도록 함
+//                            selectedDestination.value = ""
+//                        }
+//                    ) {
+//                        Text("취소")
+//                    }
+//                }
+//            )
+//        }
+//        // 질문 2: 여행 기간 선택 (출발, 도착)
+//        TravelPeriodQuestion(
+//            question = "여행 기간은 어떻게 되시나요?",
+//            selectedDeparture = selectedDeparture,
+//            selectedReturn = selectedReturn
+//        )
+//        // 질문 3: 누구와 함께 가세요?
+//        GridQuestion(
+//            question = "누구와 함께 가세요?",
+//            options = companionOptions,
+//            selectedOption = selectedCompanion
+//        )
+//        // 질문 4: 이동 방법은?
+//        GridQuestion(
+//            question = "이동 방법은?",
+//            options = transportationOptions,
+//            selectedOption = selectedTransportation
+//        )
+//        // 질문 5: 예산은 어느 정도 생각하세요?
+//        GridQuestion(
+//            question = "예산은 어느 정도 생각하세요?",
+//            options = budgetOptions,
+//            selectedOption = selectedBudget
+//        )
+//        Row {
+//            LogoutButton(navController)
+//            Spacer(modifier = Modifier.size(16.dp))
+//            Button(
+//                onClick = {
+//                    // 모든 질문 선택 완료 후 결과 페이지로 이동
+//                    navController.navigate("loading/recommendAttraction")
+//                }
+//            ) {
+//                Text("제출하기")
+//            }
+//        }
     }
 }
 
@@ -357,6 +426,7 @@ fun TravelPeriodQuestion(
         val calendar = Calendar.getInstance()
         DatePickerDialog(
             context,
+            R.style.MyDatePickerDialogTheme,
             { _, year, month, dayOfMonth ->
                 selectedDeparture.value = LocalDate.of(year, month + 1, dayOfMonth)
                 showDeparturePicker.value = false
@@ -371,6 +441,7 @@ fun TravelPeriodQuestion(
         val calendar = Calendar.getInstance()
         DatePickerDialog(
             context,
+            R.style.MyDatePickerDialogTheme,
             { _, year, month, dayOfMonth ->
                 selectedReturn.value = LocalDate.of(year, month + 1, dayOfMonth)
                 showReturnPicker.value = false
@@ -384,14 +455,23 @@ fun TravelPeriodQuestion(
 
 @Composable
 fun LogoutButton(navController: NavController) {
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
     val context = LocalContext.current  // Composable 컨텍스트 내에서 미리 호출
-    Button(onClick = {
-        LogoutManager.logout(context)
-        navController.navigate("login") {
-            popUpTo("main") { inclusive = true }
-        }
-    }) {
-        Text("로그아웃")
+    Button(
+        onClick = {
+            LogoutManager.logout(context)
+            navController.navigate("login") {
+                popUpTo("main") { inclusive = true }
+            }
+        },
+        modifier = Modifier
+            .width(247.dp)
+            .height(48.dp),
+        shape = RoundedCornerShape(100.dp)
+    ) {
+        Text("로그아웃", fontSize = 21.sp, fontFamily = myFontFamily, color = Color.Black)
     }
 }
 

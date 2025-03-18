@@ -1,6 +1,7 @@
 package com.intel.NLPproject
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
@@ -40,7 +42,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -64,23 +70,38 @@ fun RecommendAttractionScreen(navController: NavHostController) {
 
     // 선택된 관광지를 저장할 상태 (다중 선택 가능)
     val selectedAttractions = remember { mutableStateListOf<String>() }
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
+
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(top = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            text = "추천 관광지1",
-            fontSize = 32.sp
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "관광지 추천 목록",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .height(550.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -127,8 +148,26 @@ fun RecommendAttractionScreen(navController: NavHostController) {
             }
         }
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
+            Button(
+                onClick = {
+                    navController.navigate("attractionPreference")
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
+            ) {
+                Text(
+                    "못고르겠어요",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
+            }
             Button(
                 onClick = {
                     val currentUserId = getCurrentUserId(context)
@@ -153,33 +192,55 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                     } else {
                         Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
                     }
-                }) {
-                Text("관광지 확정 후 숙소 선택")
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
+            ) {
+                Text(
+                    "관광지 확정",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     navController.navigate("first")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("메인화면으로")
+                Text(
+                    text = "메인화면으로",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(
-                onClick = {
-                    navController.navigate("attractionPreference")
-                }
-            ) {
-                Text("못고르겠어요")
-            }
-            Button(
-                onClick = { navController.popBackStack() },
-            ) {
-                Text("뒤로가기")
-            }
-        }
+        Spacer(modifier = Modifier.height(8.dp))
         // 관광지 설명 다이얼로그
         if (showDescriptionDialog) {
             AlertDialog(
@@ -270,6 +331,8 @@ fun RecommendAttractionScreen(navController: NavHostController) {
 
 @Composable
 fun RecommendAttractionScreen2(navController: NavHostController) {
+    var showDescriptionDialog by remember { mutableStateOf(false) }
+    var currentDescription by remember { mutableStateOf("") }
     // 예시 관광지 추천 목록 (10개)
     val attractions = listOf(
         "관광지 추천 1", "관광지 추천 2", "관광지 추천 3", "관광지 추천 4", "관광지 추천 5",
@@ -279,23 +342,38 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
 
     // 선택된 관광지를 저장할 상태 (다중 선택 가능)
     val selectedAttractions = remember { mutableStateListOf<String>() }
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
+
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(top = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Text(
-            text = "추천 관광지2",
-            fontSize = 32.sp
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "관광지 추천 목록",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .height(550.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -325,18 +403,27 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = attraction)
+                        IconButton(
+                            onClick = {
+                                currentDescription = attraction
+                                showDescriptionDialog = true
+                            },
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "관광지 설명 보기"
+                            )
+                        }
                     }
                 }
             }
         }
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-            ) {
-                Text("뒤로가기")
-            }
             Button(
                 onClick = {
                     val currentUserId = getCurrentUserId(context)
@@ -361,16 +448,54 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
                     } else {
                         Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
                     }
-                }) {
-                Text("관광지 확정 후 숙소 선택")
+                },
+                modifier = Modifier
+                    .width(330.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
+            ) {
+                Text(
+                    "관광지 확정",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
-        Button(
-            onClick = {
-                navController.navigate("first")
-            }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Text("메인화면으로")
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
+            Button(
+                onClick = {
+                    navController.navigate("first")
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
+            ) {
+                Text(
+                    text = "메인화면으로",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
+            }
         }
+
     }
 }

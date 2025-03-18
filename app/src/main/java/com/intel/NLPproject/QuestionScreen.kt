@@ -25,6 +25,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -157,8 +158,45 @@ fun QuestionScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (currentStep) {
+
+                // destination
                 1 -> {
-                    // "직접 입력하기" 버튼 (버튼 텍스트는 customDestinationText가 비어있으면 "직접 입력하기", 값이 있으면 그 값으로 표시)
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showCustomInputDialog = true },
                         modifier = Modifier
@@ -184,14 +222,14 @@ fun QuestionScreen(navController: NavHostController) {
                             )
                         }
                     }
-
+                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(530.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 1) 대분류 목록 표시
                         destinationOptions.forEach { destination ->
@@ -266,7 +304,44 @@ fun QuestionScreen(navController: NavHostController) {
                     }
                 }
 
+                // departure / return
                 2 -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     TravelPeriodQuestion(
                         question = "여행 기간은 어떻게 되시나요?",
                         selectedDeparture = selectedDeparture,
@@ -274,7 +349,44 @@ fun QuestionScreen(navController: NavHostController) {
                     )
                 }
 
+                // companion
                 3 -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showCustomInputDialog = true },
                         modifier = Modifier
@@ -301,14 +413,14 @@ fun QuestionScreen(navController: NavHostController) {
                             )
                         }
                     }
-
+                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(530.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 동행자 기본 옵션 표시
                         companionOptions.forEach { option ->
@@ -372,6 +484,42 @@ fun QuestionScreen(navController: NavHostController) {
 
                 // transportation
                 4 -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(color = Color.LightGray)
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showCustomInputDialog = true },
                         modifier = Modifier
@@ -397,14 +545,14 @@ fun QuestionScreen(navController: NavHostController) {
                             )
                         }
                     }
-
+                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(530.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 교통수단 기본 옵션 표시
                         transportationOptions.forEach { option ->
@@ -468,6 +616,42 @@ fun QuestionScreen(navController: NavHostController) {
 
                 // budget
                 5 -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 10.dp, end = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+
+                        Column(
+                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                                .height(5.dp)
+                                .width(61.dp)
+                        ) {  }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showCustomInputDialog = true },
                         modifier = Modifier
@@ -493,13 +677,14 @@ fun QuestionScreen(navController: NavHostController) {
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(530.dp)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 예산 기본 옵션 표시
                         budgetOptions.forEach { option ->

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -51,9 +53,10 @@ fun FirstScreen(navController: NavHostController) {
         modifier = Modifier.fillMaxSize()
     ) {
         Image(
-            painter = painterResource(R.drawable.loginscr),
+            painter = painterResource(R.drawable.background),
             contentDescription = "background",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
         )
         Column(
             modifier = Modifier
@@ -63,6 +66,12 @@ fun FirstScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Image(
+                painter = painterResource(R.drawable.backlogo),
+                contentDescription = "",
+                modifier = Modifier.size(150.dp)
+            )
+            Spacer(modifier = Modifier.height(142.dp))
             Button(
                 onClick = {
                     navController.navigate("main")
@@ -73,9 +82,9 @@ fun FirstScreen(navController: NavHostController) {
             ) {
                 Text("시작하기", fontSize = 21.sp, fontFamily = myFontFamily, color = Color.Black)
             }
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             LogoutButton(navController)
-            Spacer(modifier = Modifier.height(44.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

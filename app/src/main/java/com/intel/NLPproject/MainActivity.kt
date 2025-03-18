@@ -104,7 +104,6 @@ fun MyApp(navController: NavHostController) {
         composable("recommendAttraction2") { RecommendAttractionScreen2(navController) }
         composable("recommendAccommodation") { RecommendAccommodationScreen(navController) }
         composable("recommendRestaurants") { RecommendRestaurantsScreen(navController) }
-        composable("recommendTransportation") { RecommendTransportationScreen(navController) }
         composable("attractionPreference") { AttractionPreferenceScreen(navController) }
         composable("accommodationPreference") { AccommodationPreferenceScreen(navController) }
         composable("restaurantPreference") { RestaurantPreferenceScreen(navController) }

@@ -1065,7 +1065,7 @@ fun TravelPeriodQuestion(
         }
     }
 
-// DatePickerDialog for 출발일
+    // DatePickerDialog for 출발일
     if (showDeparturePicker.value) {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(
@@ -1085,7 +1085,7 @@ fun TravelPeriodQuestion(
         datePickerDialog.show()
     }
 
-// DatePickerDialog for 도착일
+    // DatePickerDialog for 도착일
     if (showReturnPicker.value) {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(

@@ -151,9 +151,7 @@ fun MainScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(80.dp))
         // button1
         Button(
-            onClick = {
-                navController.navigate("question")
-            },
+            onClick = {},
             modifier = Modifier
                 .width(330.dp)
                 .height(49.dp),
@@ -225,7 +223,7 @@ fun MainScreen(navController: NavHostController) {
         Button(
             onClick = {
                 // 모든 질문 선택 완료 후 결과 페이지로 이동
-                navController.navigate("loading/recommendAttraction")
+                navController.navigate("question")
             },
             modifier = Modifier
                 .width(247.dp)
@@ -236,7 +234,7 @@ fun MainScreen(navController: NavHostController) {
                 contentColor = Color.White           // 버튼 텍스트 색상
             )
         ) {
-            Text("AI 추천 받기", fontSize = 21.sp, color = Color(0xFFFFFFFF), fontFamily = myFontFamily)
+            Text("일정 짜러 가기", fontSize = 21.sp, color = Color(0xFFFFFFFF), fontFamily = myFontFamily)
         }
         Spacer(modifier = Modifier.height(20.dp))
         Button(
@@ -255,201 +253,6 @@ fun MainScreen(navController: NavHostController) {
             Text("뒤로가기", fontSize = 21.sp, fontFamily = myFontFamily, color = Color(0xFFFFFFFF))
         }
 
-
-//        // 질문 1: 목적지 선택 (부산/경상권 등 서브 옵션 포함)
-//        GridCascadingQuestion(
-//            question = "어디로 가실래요?",
-//            options = destinationOptions,
-//            subOptionsMap = subregionOptionsMap,
-//            selectedOption = selectedDestination
-//        )
-//        // "직접 입력" 옵션 선택 시 다이얼로그 띄우기
-//        if (selectedDestination.value == "직접 입력" && !showCustomInputDialog.value) {
-//            showCustomInputDialog.value = true
-//        }
-//        if (showCustomInputDialog.value) {
-//            AlertDialog(
-//                onDismissRequest = {
-//                    showCustomInputDialog.value = false
-//                    // 취소 시 selectedDestination 초기화
-//                    selectedDestination.value = ""
-//                },
-//                title = { Text("목적지 직접 입력") },
-//                text = {
-//                    Column {
-//                        Text("여행 가고 싶은 곳을 입력하세요:")
-//                        OutlinedTextField(
-//                            value = customDestinationInput.value,
-//                            onValueChange = { customDestinationInput.value = it },
-//                            placeholder = { Text("예: 서울, 부산, 제주 등") }
-//                        )
-//                    }
-//                },
-//                confirmButton = {
-//                    Button(
-//                        onClick = {
-//                            // 입력한 값으로 선택 업데이트 후 다이얼로그 닫기
-//                            selectedDestination.value = customDestinationInput.value
-//                            showCustomInputDialog.value = false
-//                        }
-//                    ) {
-//                        Text("확인")
-//                    }
-//                },
-//                dismissButton = {
-//                    Button(
-//                        onClick = {
-//                            showCustomInputDialog.value = false
-//                            // 취소 시에도 selectedDestination 값을 초기화하여 다이얼로그가 재발동되지 않도록 함
-//                            selectedDestination.value = ""
-//                        }
-//                    ) {
-//                        Text("취소")
-//                    }
-//                }
-//            )
-//        }
-//        // 질문 2: 여행 기간 선택 (출발, 도착)
-//        TravelPeriodQuestion(
-//            question = "여행 기간은 어떻게 되시나요?",
-//            selectedDeparture = selectedDeparture,
-//            selectedReturn = selectedReturn
-//        )
-//        // 질문 3: 누구와 함께 가세요?
-//        GridQuestion(
-//            question = "누구와 함께 가세요?",
-//            options = companionOptions,
-//            selectedOption = selectedCompanion
-//        )
-//        // 질문 4: 이동 방법은?
-//        GridQuestion(
-//            question = "이동 방법은?",
-//            options = transportationOptions,
-//            selectedOption = selectedTransportation
-//        )
-//        // 질문 5: 예산은 어느 정도 생각하세요?
-//        GridQuestion(
-//            question = "예산은 어느 정도 생각하세요?",
-//            options = budgetOptions,
-//            selectedOption = selectedBudget
-//        )
-//        Row {
-//            LogoutButton(navController)
-//            Spacer(modifier = Modifier.size(16.dp))
-//            Button(
-//                onClick = {
-//                    // 모든 질문 선택 완료 후 결과 페이지로 이동
-//                    navController.navigate("loading/recommendAttraction")
-//                }
-//            ) {
-//                Text("제출하기")
-//            }
-//        }
-    }
-}
-
-@Composable
-fun TravelPeriodQuestion(
-    question: String,
-    selectedDeparture: MutableState<LocalDate?>,
-    selectedReturn: MutableState<LocalDate?>
-) {
-    val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
-    // DatePickerDialog 호출 상태
-    val showDeparturePicker = remember { mutableStateOf(false) }
-    val showReturnPicker = remember { mutableStateOf(false) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // 기본 버튼 (선택된 날짜가 있으면 출력, 없으면 질문 텍스트)
-        OutlinedButton(
-            onClick = { expanded = !expanded },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .height(50.dp)
-        ) {
-            val displayText = if (selectedDeparture.value == null || selectedReturn.value == null)
-                question
-            else
-                "${selectedDeparture.value} ~ ${selectedReturn.value}"
-            // 날짜 선택 여부에 따라 텍스트 색상을 변경
-            val textColor = if (selectedDeparture.value != null && selectedReturn.value != null)
-                Color.Red
-            else
-                Color.Black
-
-            Text(text = displayText, fontSize = 20.sp, color = textColor)
-        }
-        // 확장 상태일 때 출발, 도착 선택 UI 표시
-        if (expanded) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("출발")
-                    Button(
-                        onClick = { showDeparturePicker.value = true },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .height(45.dp)
-                    ) {
-                        Text(
-                            text = selectedDeparture.value?.toString() ?: "날짜 선택",
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("도착")
-                    Button(
-                        onClick = { showReturnPicker.value = true },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .height(45.dp)
-                    ) {
-                        Text(
-                            text = selectedReturn.value?.toString() ?: "날짜 선택",
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    // DatePickerDialog for 출발일
-    if (showDeparturePicker.value) {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            context,
-            R.style.MyDatePickerDialogTheme,
-            { _, year, month, dayOfMonth ->
-                selectedDeparture.value = LocalDate.of(year, month + 1, dayOfMonth)
-                showDeparturePicker.value = false
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-    // DatePickerDialog for 도착일
-    if (showReturnPicker.value) {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            context,
-            R.style.MyDatePickerDialogTheme,
-            { _, year, month, dayOfMonth ->
-                selectedReturn.value = LocalDate.of(year, month + 1, dayOfMonth)
-                showReturnPicker.value = false
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
     }
 }
 
@@ -472,124 +275,5 @@ fun LogoutButton(navController: NavController) {
         shape = RoundedCornerShape(100.dp)
     ) {
         Text("로그아웃", fontSize = 21.sp, fontFamily = myFontFamily, color = Color.Black)
-    }
-}
-
-@Composable
-fun GridQuestion(
-    question: String,
-    options: List<String>,
-    selectedOption: MutableState<String>
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // 기본 버튼
-        OutlinedButton(
-            onClick = { expanded = !expanded },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .height(50.dp)
-        ) {
-            Text(
-                text = if (selectedOption.value.isEmpty()) question else selectedOption.value,
-                fontSize = 20.sp,
-                color = if (selectedOption.value.isEmpty()) Color.Black else Color.Red
-            )
-        }
-        // 버튼 클릭 시 그리드 형태로 옵션 보여주기
-        if (expanded) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3), // 3열
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp), // 필요에 따라 높이 조정
-                contentPadding = PaddingValues(8.dp)
-            ) {
-                items(options.size) { index ->
-                    val option = options[index]
-                    Button(
-                        onClick = {
-                            selectedOption.value = option
-                            expanded = false
-                        },
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxWidth()
-                            .height(45.dp)
-                    ) {
-                        Text(option)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun GridCascadingQuestion(
-    question: String,
-    options: List<String>,
-    subOptionsMap: Map<String, List<String>>,
-    selectedOption: MutableState<String>
-) {
-    var expanded by remember { mutableStateOf(false) }
-    // 초기 옵션은 전체 옵션, sub옵션 선택 시 변경됨
-    var currentOptions by remember { mutableStateOf(options) }
-    var currentParent by remember { mutableStateOf<String?>(null) }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedButton(
-            onClick = { expanded = !expanded },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .height(50.dp)
-        ) {
-            val displayText = if (selectedOption.value.isEmpty()) question else selectedOption.value
-            val textColor = if (selectedOption.value.isEmpty()) Color.Black else Color.Red
-            Text(
-                text = displayText,
-                fontSize = 20.sp,
-                color = textColor
-            )
-        }
-        if (expanded) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp),
-                contentPadding = PaddingValues(8.dp)
-            ) {
-                items(currentOptions.size) { index ->
-                    val option = currentOptions[index]
-                    Button(
-                        onClick = {
-                            // 만약 아직 상위 옵션이 선택되지 않았고, 해당 옵션에 서브 옵션이 있다면
-                            if (currentParent == null && subOptionsMap.containsKey(option)) {
-                                currentParent = option
-                                currentOptions = subOptionsMap[option] ?: emptyList()
-                            } else {
-                                selectedOption.value = if (currentParent != null) {
-                                    "$currentParent: $option"
-                                } else {
-                                    option
-                                }
-                                // 선택 후 초기 상태로 복귀
-                                currentOptions = options
-                                currentParent = null
-                                expanded = false
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxWidth()
-                            .height(45.dp)
-                    ) {
-                        Text(option)
-                    }
-                }
-            }
-        }
     }
 }

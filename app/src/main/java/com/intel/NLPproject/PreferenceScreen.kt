@@ -2,7 +2,10 @@ package com.intel.NLPproject
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -22,10 +25,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -34,16 +43,16 @@ import androidx.navigation.NavHostController
 fun AttractionPreferenceScreen(navController: NavHostController) {
     // 여행 컨셉 옵션: 메인 옵션과 해당 세부 옵션
     val travelConceptMap = mapOf(
-        "북적이는 핫플레이스" to listOf("액티브", "도심", "미식"),
+        "인기 핫플레이스" to listOf("액티브", "도심", "미식"),
         "한적하고 조용한 곳" to listOf("휴양형", "문화체험"),
         "상관없음 (추천)" to emptyList()
     )
 
     // 일정 및 활동량 옵션: 메인 옵션과 해당 세부 옵션
     val scheduleMap = mapOf(
-        "여유형 (2-3곳 방문)" to listOf("중간중간 휴식", "일정 후 휴식"),
-        "균형형 (4-5곳 방문)" to listOf("중간중간 휴식", "일정 후 휴식"),
-        "활동형 (6곳 이상 방문)" to listOf("중간중간 휴식", "일정 후 휴식")
+        "유유자적 (조금만 돌아다님)" to listOf("중간중간 휴식", "일정 후 휴식"),
+        "과유불급 (적당히 돌아다님)" to listOf("중간중간 휴식", "일정 후 휴식"),
+        "동분서주 (많이 돌아다님)" to listOf("중간중간 휴식", "일정 후 휴식")
     )
 
     // 특수 고려사항 옵션 (멀티 선택)
@@ -64,53 +73,80 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
     // 미선택: 분홍색, 선택됨: 회색 (색상은 예시로 사용)
     val unselectedColor = Color(0xFFFFC0CB)
     val selectedColor = Color.LightGray
-
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .systemBarsPadding()
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 화면 제목
-        Text(
-            text = "여행 취향 설정",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "여행 취향 설정",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .height(600.dp)
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // [여행 컨셉] 섹션
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 컨셉", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("여행 컨셉", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     // 메인 옵션: 한 줄씩 표시
                     travelConceptMap.keys.toList().forEach { option ->
-                        val containerColor =
-                            if (selectedTravelConcept == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedTravelConcept == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+
+                        Button(
                             onClick = {
                                 selectedTravelConcept = option
                                 selectedTravelConceptDetail = ""
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
                         // 세부 옵션: 선택된 메인 옵션에 대해 Row로 표시
                         val subOptions = travelConceptMap[option] ?: emptyList()
                         if (selectedTravelConcept == option && subOptions.isNotEmpty()) {
@@ -120,26 +156,39 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 subOptions.forEach { subOption ->
-                                    val subContainerColor =
-                                        if (selectedTravelConceptDetail == subOption) selectedColor else unselectedColor
+                                    val isSubSelected =
+                                        (selectedTravelConceptDetail == subOption)
+                                    val subBorderColor =
+                                        if (isSubSelected) Color(0xFFF20574) else Color.Transparent
                                     Button(
                                         onClick = { selectedTravelConceptDetail = subOption },
-                                        colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(65.dp)
-                                            .padding(vertical = 2.dp),
-                                        shape = RoundedCornerShape(4.dp)
+                                            .height(48.dp)
+                                            .padding(vertical = 2.dp)
+                                            .border(
+                                                border = BorderStroke(2.dp, subBorderColor),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF0DBBCA),
+                                            contentColor = Color.Black
+                                        )
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 18.sp
+                                            fontSize = 16.sp,
+                                            fontFamily = myFontFamily,
+                                            color = Color.White,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -147,28 +196,42 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
             // [일정 및 활동량] 섹션
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("하루 활동량", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("하루 활동량", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     scheduleMap.keys.toList().forEach { option ->
-                        val containerColor =
-                            if (selectedSchedule == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedSchedule == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = {
                                 selectedSchedule = option
                                 selectedScheduleDetail = ""
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
                         val subOptions = scheduleMap[option] ?: emptyList()
                         if (selectedSchedule == option && subOptions.isNotEmpty()) {
                             Spacer(modifier = Modifier.height(8.dp))
@@ -177,26 +240,38 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 subOptions.forEach { subOption ->
-                                    val subContainerColor =
-                                        if (selectedScheduleDetail == subOption) selectedColor else unselectedColor
+                                    val isSubSelected = (selectedScheduleDetail == subOption)
+                                    val subBorderColor =
+                                        if (isSubSelected) Color(0xFFF20574) else Color.Transparent
                                     Button(
                                         onClick = { selectedScheduleDetail = subOption },
-                                        colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(65.dp)
-                                            .padding(vertical = 2.dp),
-                                        shape = RoundedCornerShape(4.dp)
+                                            .height(48.dp)
+                                            .padding(vertical = 2.dp)
+                                            .border(
+                                                border = BorderStroke(2.dp, subBorderColor),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF0DBBCA),
+                                            contentColor = Color.Black
+                                        )
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 18.sp
+                                            fontSize = 16.sp,
+                                            fontFamily = myFontFamily,
+                                            color = Color.White,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -204,12 +279,13 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
             // [특수 고려사항] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("특수사항 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("특수사항 (필요 시)", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     specialConsiderations.forEach { option ->
-                        val containerColor =
-                            if (selectedSpecialConsiderations.contains(option)) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = selectedSpecialConsiderations.contains(option)
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = {
                                 if (selectedSpecialConsiderations.contains(option)) {
                                     selectedSpecialConsiderations.remove(option)
@@ -217,33 +293,50 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                                     selectedSpecialConsiderations.add(option)
                                 }
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(18.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Absolute.Center
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-            ) {
-                Text("뒤로가기")
-            }
-            // 제출 버튼 (기본 Button)
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     println(
@@ -256,11 +349,21 @@ fun AttractionPreferenceScreen(navController: NavHostController) {
                     )
                     println("특수 고려사항: $selectedSpecialConsiderations")
                     navController.navigate("loading/recommendAttraction2")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("제출하기")
+                Text(
+                    text = "AI 추천 받기",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
@@ -297,53 +400,84 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
     // 색상 설정: 미선택은 분홍색, 선택된 경우 회색 (예시)
     val unselectedColor = Color(0xFFFFC0CB)  // 분홍색
     val selectedColor = Color.LightGray
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .systemBarsPadding()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 화면 제목
-        Text(
-            text = "숙소 취향 설정",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "숙소 취향 설정",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .height(600.dp)
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // [숙소 스타일] 섹션 (한 개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("숙소 스타일", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("숙소 스타일", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     // 메인 옵션: 한 줄씩 표시
                     accommodationStyleMap.keys.toList().forEach { option ->
+                        val isSelected = (selectedAccommodationStyle == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+
                         val containerColor =
                             if (selectedAccommodationStyle == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        Button(
                             onClick = {
                                 selectedAccommodationStyle = option
                                 selectedAccommodationStyleDetail = ""
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
                         // 세부 옵션: 선택된 메인 옵션에 대해 Row로 표시
                         val subOptions = accommodationStyleMap[option] ?: emptyList()
                         if (selectedAccommodationStyle == option && subOptions.isNotEmpty()) {
@@ -353,26 +487,40 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 subOptions.forEach { subOption ->
-                                    val subContainerColor =
-                                        if (selectedAccommodationStyleDetail == subOption) selectedColor else unselectedColor
+                                    val isSubSelected =
+                                        (selectedAccommodationStyleDetail == subOption)
+                                    val subBorderColor =
+                                        if (isSubSelected) Color(0xFFF20574) else Color.Transparent
                                     Button(
                                         onClick = { selectedAccommodationStyleDetail = subOption },
-                                        colors = ButtonDefaults.buttonColors(containerColor = subContainerColor),
                                         modifier = Modifier
                                             .weight(1f)
-                                            .height(65.dp)
-                                            .padding(vertical = 2.dp),
-                                        shape = RoundedCornerShape(4.dp)
+                                            .height(60.dp)
+                                            .padding(vertical = 2.dp)
+                                            .border(
+                                                border = BorderStroke(2.dp, subBorderColor),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF0DBBCA),
+                                            contentColor = Color.Black
+                                        )
                                     ) {
                                         Text(
                                             text = subOption,
                                             textAlign = TextAlign.Center,
-                                            fontSize = 18.sp
+                                            fontSize = 16.sp,
+                                            fontFamily = myFontFamily,
+                                            color = Color.White,
+                                            modifier = Modifier.fillMaxWidth()
+                                                .offset(y = (-1).dp)
                                         )
                                     }
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -380,25 +528,39 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
             // [숙소 위치] 섹션 (한 개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("숙소 위치", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("숙소 위치", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     accommodationLocationOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedAccommodationLocation == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedAccommodationLocation == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = { selectedAccommodationLocation = option },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -406,12 +568,13 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
             // [부가 시설 선택] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("부가 시설 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("부가 시설 (필요 시)", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     additionalFacilitiesOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedAdditionalFacilities.contains(option)) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = selectedAdditionalFacilities.contains(option)
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = {
                                 if (selectedAdditionalFacilities.contains(option)) {
                                     selectedAdditionalFacilities.remove(option)
@@ -419,33 +582,50 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                                     selectedAdditionalFacilities.add(option)
                                 }
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(18.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() },
-            ) {
-                Text("뒤로가기")
-            }
-            // 제출 버튼 (기본 Button)
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     println(
@@ -455,11 +635,21 @@ fun AccommodationPreferenceScreen(navController: NavHostController) {
                     println("숙소 위치: $selectedAccommodationLocation")
                     println("부가 시설: $selectedAdditionalFacilities")
                     navController.navigate("loading/recommendAccommodation")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("제출하기")
+                Text(
+                    text = "AI 추천 받기",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
@@ -498,36 +688,53 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
     // 색상 설정: 미선택은 분홍색, 선택되면 회색 (예시)
     val unselectedColor = Color(0xFFFFC0CB) // 분홍색
     val selectedColor = Color.LightGray
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .systemBarsPadding()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 화면 제목
-        Text(
-            text = "식사 취향 설정",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "식당 취향 설정",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .height(600.dp)
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // [식사 스타일] 섹션 (최대 2개 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("식사 스타일 (2개 선택)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("식사 스타일 (2개 선택)", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     mealStyleOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedMealStyles.contains(option)) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedMealStyles.contains(option))
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = {
                                 if (selectedMealStyles.contains(option)) {
                                     selectedMealStyles.remove(option)
@@ -537,18 +744,29 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -556,25 +774,39 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
             // [식당 위치] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("식당 위치", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("식당 위치", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     restaurantLocationOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedRestaurantLocation == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedRestaurantLocation == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = { selectedRestaurantLocation = option },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -582,12 +814,13 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
             // [특수 조건] 섹션 (멀티 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("특수 조건 (필요 시)", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("특수 조건 (필요 시)", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     specialConditionsOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedSpecialConditions.contains(option)) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = selectedSpecialConditions.contains(option)
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = {
                                 if (selectedSpecialConditions.contains(option)) {
                                     selectedSpecialConditions.remove(option)
@@ -595,43 +828,71 @@ fun RestaurantPreferenceScreen(navController: NavHostController) {
                                     selectedSpecialConditions.add(option)
                                 }
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() }
-            ) {
-                Text("뒤로가기")
-            }
-            // 제출 버튼 (기본 Button)
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     println("식사 스타일: $selectedMealStyles")
                     println("식당 위치: $selectedRestaurantLocation")
                     println("특수 조건: $selectedSpecialConditions")
                     navController.navigate("loading/recommendRestaurants")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("제출하기")
+                Text(
+                    text = "AI 추천 받기",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 
@@ -658,98 +919,155 @@ fun TravelTimePreferenceScreen(navController: NavHostController) {
     // 색상 설정: 미선택은 분홍색, 선택된 경우 회색 (예시)
     val unselectedColor = Color(0xFFFFC0CB) // 분홍색
     val selectedColor = Color.Gray
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .systemBarsPadding()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 화면 제목
-        Text(
-            text = "여행 시간 설정",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // 스크롤 영역 (weight를 사용해 하단 버튼이 항상 보이도록)
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .height(82.dp)
+                .background(color = Color(0xFFFFA700)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                "여행 시간 설정",
+                fontSize = 28.sp,
+                fontFamily = myFontFamily,
+                color = Color.Black,
+                modifier = Modifier.offset(y = (-8).dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp)
+                .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // [여행 시작 시간] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 시작 시간", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("여행 시작 시간", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     startTimeOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedStartTime.value == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = (selectedStartTime.value == option)
+                        val borderColor =
+                            if (isSelected) Color(0xFFF20574) else Color.Transparent
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = { selectedStartTime.value = option },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
             // [여행 종료 시간] 섹션 (단일 선택)
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("여행 종료 시간", fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                    Text("여행 종료 시간", fontSize = 28.sp, fontFamily = myFontFamily)
                     Spacer(modifier = Modifier.height(8.dp))
                     endTimeOptions.forEach { option ->
-                        val containerColor =
-                            if (selectedEndTime.value == option) selectedColor else unselectedColor
-                        OutlinedButton(
+                        val isSelected = selectedEndTime.value == option
+                        val borderColor2 =
+                            if (isSelected) Color(0xFF3B00FF) else Color.Transparent
+                        Button(
                             onClick = { selectedEndTime.value = option },
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = containerColor),
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .padding(vertical = 4.dp)
+                                .width(330.dp)
+                                .height(49.dp)
+                                .border(
+                                    border = BorderStroke(3.dp, borderColor2),
+                                    shape = RoundedCornerShape(25.dp)
+                                ),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFA700),
+                                contentColor = Color.Black
+                            )
                         ) {
                             Text(
                                 text = option,
                                 textAlign = TextAlign.Center,
-                                fontSize = 24.sp
+                                fontSize = 21.sp,
+                                fontFamily = myFontFamily,
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.Bottom
         ) {
-            Button(
-                onClick = { navController.popBackStack() }
-            ) {
-                Text("뒤로가기")
-            }
-            // 제출 버튼 (하단에 항상 보임)
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     println("여행 시작 시간: ${selectedStartTime.value}")
                     println("여행 종료 시간: ${selectedEndTime.value}")
                     navController.navigate("loading/travelPlan")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("최종 여행 일정 보기")
+                Text(
+                    text = "일정 보기",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
+
             }
         }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }

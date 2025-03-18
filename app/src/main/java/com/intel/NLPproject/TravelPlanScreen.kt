@@ -118,7 +118,7 @@ fun TravelPlanScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(560.dp)
+                .height(550.dp)
                 .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -133,7 +133,6 @@ fun TravelPlanScreen(navController: NavHostController) {
                     showAttractionDialog = true
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
             // 숙소 섹션
             DataGridSection(
@@ -145,7 +144,6 @@ fun TravelPlanScreen(navController: NavHostController) {
                     showAccommodationDialog = true
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
             // 식당 섹션
             DataGridSection(
@@ -173,9 +171,10 @@ fun TravelPlanScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
+                    navController.navigate("detailPlan")
                 }
             ) {
-                Text("경로 보기")
+                Text("일정 확인")
             }
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -198,7 +197,7 @@ fun TravelPlanScreen(navController: NavHostController) {
                 Text("뒤로가기")
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

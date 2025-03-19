@@ -26,7 +26,7 @@ interface CloudApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://34.22.106.23:5000/"
+    private const val BASE_URL = "http://34.47.121.123:5000/"
 
     val cloudApiService: CloudApiService by lazy {
         Retrofit.Builder()

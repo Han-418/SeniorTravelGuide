@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 // 서버로 전송할 데이터 모델
 data class QuestionData(
@@ -41,6 +42,12 @@ interface CloudApiService {
     @POST("submitQuestion")
     suspend fun submitQuestion(@Body questionData: QuestionData): Response<TaskResponse>
 
+    // 페이지네이션을 위한 Query 파라미터 추가
     @GET("taskStatus/{task_id}")
-    suspend fun getTaskStatus(@Path("task_id") taskId: String): Response<TaskStatusResponse>
+    suspend fun getTaskStatus(
+        @Path("task_id") taskId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 10
+    ): Response<TaskStatusResponse>
 }
+

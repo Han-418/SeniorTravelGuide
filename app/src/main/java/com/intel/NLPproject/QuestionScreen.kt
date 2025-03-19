@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +51,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.intel.NLPproject.api.QuestionData
+import com.intel.NLPproject.api.RetrofitClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Calendar
 
@@ -116,6 +122,9 @@ fun QuestionScreen(navController: NavHostController) {
         Font(R.font.notoserifkrblack)
     )
     var currentStep by remember { mutableIntStateOf(1) }
+
+    // 서버에 값 전송 변수 : 코루틴 스코프 선언 (Composable 내에서 코루틴 사용)
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -775,7 +784,42 @@ fun QuestionScreen(navController: NavHostController) {
                         if (selectedBudget.isEmpty()) {
                             Toast.makeText(context, "예산을 선택해주세요", Toast.LENGTH_SHORT).show()
                         } else {
-                            navController.navigate("loading/recommendAttraction")
+                            // 서버로 전송할 데이터 객체 생성
+                            val questionData = QuestionData(
+                                selectedDestination = selectedDestination,
+                                selectedSubregion = selectedSubregion,
+                                selectedCompanion = selectedCompanion,
+                                selectedTransportation = selectedTransportation,
+                                selectedBudget = selectedBudget,
+                                customDestinationText = customDestinationText,
+                                customDestinationInput = customDestinationInput,
+                                selectedDeparture = selectedDeparture.value?.toString() ?: "",
+                                selectedReturn = selectedReturn.value?.toString() ?: ""
+                            )
+                            // IO 디스패처에서 네트워크 요청 실행
+                            coroutineScope.launch(Dispatchers.IO) {
+                                try {
+                                    val response =
+                                        RetrofitClient.cloudApiService.submitQuestion(questionData)
+                                    withContext(Dispatchers.Main) {
+                                        if (response.isSuccessful) {
+                                            // 성공 시 다음 화면으로 이동
+                                            navController.navigate("loading/recommendAttraction")
+                                        } else {
+                                            Toast.makeText(context, "서버 전송 실패", Toast.LENGTH_SHORT)
+                                                .show()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(
+                                            context,
+                                            "전송 중 오류 발생: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
@@ -783,7 +827,12 @@ fun QuestionScreen(navController: NavHostController) {
                         .height(40.dp),
                     shape = RoundedCornerShape(18.dp),
                 ) {
-                    Text(text = "AI 추천 받기", fontSize = 19.sp, fontFamily = myFontFamily, modifier = Modifier.offset(y = (-2).dp))
+                    Text(
+                        text = "AI 추천 받기",
+                        fontSize = 19.sp,
+                        fontFamily = myFontFamily,
+                        modifier = Modifier.offset(y = (-2).dp)
+                    )
                 }
             } else {
                 // currentStep이 5가 아닌 경우: 기존 이미지 버튼으로 각 단계별 검증 후 currentStep 증가
@@ -798,28 +847,35 @@ fun QuestionScreen(navController: NavHostController) {
                             when (currentStep) {
                                 1 -> {
                                     if (selectedDestination.isEmpty()) {
-                                        Toast.makeText(context, "여행지를 선택해주세요", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "여행지를 선택해주세요", Toast.LENGTH_SHORT)
+                                            .show()
                                     } else {
                                         currentStep++
                                     }
                                 }
+
                                 2 -> {
                                     if (selectedDeparture.value == null || selectedReturn.value == null) {
-                                        Toast.makeText(context, "여행 기간을 선택해주세요", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "여행 기간을 선택해주세요", Toast.LENGTH_SHORT)
+                                            .show()
                                     } else {
                                         currentStep++
                                     }
                                 }
+
                                 3 -> {
                                     if (selectedCompanion.isEmpty()) {
-                                        Toast.makeText(context, "동행자를 선택해주세요", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "동행자를 선택해주세요", Toast.LENGTH_SHORT)
+                                            .show()
                                     } else {
                                         currentStep++
                                     }
                                 }
+
                                 4 -> {
                                     if (selectedTransportation.isEmpty()) {
-                                        Toast.makeText(context, "교통수단을 선택해주세요", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "교통수단을 선택해주세요", Toast.LENGTH_SHORT)
+                                            .show()
                                     } else {
                                         currentStep++
                                     }

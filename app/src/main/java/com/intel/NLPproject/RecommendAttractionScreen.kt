@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.intel.NLPproject.api.Recommendation
 import com.intel.NLPproject.api.RetrofitClient
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,9 +39,20 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                     selectedDeparture = "2024-03-20",
                     selectedReturn = "2024-03-23"
                 )
-                val response = RetrofitClient.cloudApiService.submitQuestion(questionData)
-                if (response.isSuccessful) {
-                    recommendations = response.body()?.recommendations
+                // POST 요청: task_id를 받음
+                val submitResponse = RetrofitClient.cloudApiService.submitQuestion(questionData)
+                if (submitResponse.isSuccessful) {
+                    val taskId = submitResponse.body()?.task_id
+                    if (!taskId.isNullOrEmpty()) {
+                        // 작업 완료까지 폴링 (예: 2초마다 GET 요청)
+                        var taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                        while (taskResponse.code() != 200) {
+                            delay(2000)
+                            taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                        }
+                        // GET 요청의 응답에서 recommendations를 가져옴
+                        recommendations = taskResponse.body()?.recommendations
+                    }
                 }
             } catch (e: Exception) {
                 println("Retrofit Error: ${e.message}")

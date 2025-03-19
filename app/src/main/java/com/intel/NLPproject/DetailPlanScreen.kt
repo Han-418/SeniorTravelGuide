@@ -2,7 +2,9 @@ package com.intel.NLPproject
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -20,7 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -70,31 +76,49 @@ fun DetailPlanScreen(navController: NavHostController) {
         }
 
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        ) {
         Button(onClick = {
             val bookingUrl = "https://www.letskorail.com/" // 코레일 예매 URL로 변경
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(bookingUrl))
             context.startActivity(intent)
         }) {
             Text("코레일 예매")
-        }
+        }}
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = "back",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp)
+                    .clickable {
+                        navController.popBackStack()
+                    }
+            )
             Button(
                 onClick = {
                     navController.navigate("first")
-                }
+                },
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(45.dp),
+                shape = RoundedCornerShape(19.dp)
             ) {
-                Text("메인화면으로")
-            }
-            Button(
-                onClick = {
-                    navController.popBackStack()
-                }
-            ) {
-                Text("뒤로가기")
+                Text(
+                    text = "메인화면으로",
+                    fontSize = 19.sp,
+                    fontFamily = myFontFamily,
+                    modifier = Modifier.offset(y = (-2).dp)
+                )
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

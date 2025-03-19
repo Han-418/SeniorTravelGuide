@@ -63,12 +63,12 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
     var currentDescription by remember { mutableStateOf("") }
     // 예시 숙소 추천 목록 (10개)
     val accommodations = listOf(
-        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔제주", "라마다 제주함덕호텔"
+        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔", "라마다 제주함덕호텔"
     )
     val accommodationImages = mapOf(
         "에가톳 캐빈" to R.drawable.egattot,
         "머큐어앰배서더 제주" to R.drawable.mercurejeju,
-        "유탑유블레스호텔제주" to R.drawable.youtop,
+        "유탑유블레스호텔" to R.drawable.youtop,
         "라마다 제주함덕호텔" to R.drawable.ramada
     )
 

@@ -275,7 +275,7 @@ fun DataGridSection(
         "카멜리아 힐", "아쿠아플라넷 제주", "한라산", "새별오름", "함덕 해수욕장",
         "용눈이오름", "큰엉해안경승지", "휴애리자연생활공원",
         // 숙소
-        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔제주", "라마다 제주함덕호텔",
+        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔", "라마다 제주함덕호텔",
         // 식당
         "갈치옥 함덕", "백가네 제주 한상", "터틀리애", "동백국수"
     )
@@ -292,7 +292,7 @@ fun DataGridSection(
         // 숙소
         "에가톳 캐빈" to R.drawable.egattot,
         "머큐어앰배서더 제주" to R.drawable.mercurejeju,
-        "유탑유블레스호텔제주" to R.drawable.youtop,
+        "유탑유블레스호텔" to R.drawable.youtop,
         "라마다 제주함덕호텔" to R.drawable.ramada,
         // 식당
         "갈치옥 함덕" to R.drawable.galchiok,
@@ -350,7 +350,7 @@ fun DataGridSection(
                             Text(
                                 text = item,
                                 fontFamily = myFontFamily,
-                                fontSize = 15.sp,
+                                fontSize = 14.sp,
                                 color = Color.Black,
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )

@@ -67,31 +67,36 @@ fun DetailPlanScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(560.dp)
+                .height(590.dp)
                 .padding(8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text("여행 일정 예시", fontSize = 40.sp)
+            Image(
+                painter = painterResource(R.drawable.plan),
+                contentDescription = "",
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.Crop
+            )
         }
-
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.Center,
+//            verticalAlignment = Alignment.Bottom
+//        ) {
+//            Button(onClick = {
+//                val bookingUrl = "https://www.letskorail.com/" // 코레일 예매 URL로 변경
+//                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(bookingUrl))
+//                context.startActivity(intent)
+//            }) {
+//                Text("코레일 예매")
+//            }
+//        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
-        ) {
-        Button(onClick = {
-            val bookingUrl = "https://www.letskorail.com/" // 코레일 예매 URL로 변경
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(bookingUrl))
-            context.startActivity(intent)
-        }) {
-            Text("코레일 예매")
-        }}
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Image(
                 painter = painterResource(R.drawable.back),
@@ -121,6 +126,5 @@ fun DetailPlanScreen(navController: NavHostController) {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
     }
 }

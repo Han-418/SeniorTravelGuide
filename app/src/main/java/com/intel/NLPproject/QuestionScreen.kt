@@ -58,6 +58,7 @@ import androidx.navigation.NavHostController
 import com.intel.NLPproject.api.QuestionData
 import com.intel.NLPproject.api.RetrofitClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -833,25 +834,37 @@ fun QuestionScreen(navController: NavHostController) {
                             // IO 디스패처에서 네트워크 요청 실행
                             coroutineScope.launch(Dispatchers.IO) {
                                 try {
-                                    val response =
-                                        RetrofitClient.cloudApiService.submitQuestion(questionData)
-                                    withContext(Dispatchers.Main) {
-                                        if (response.isSuccessful) {
-                                            // 성공 시 다음 화면으로 이동
+                                    // POST 요청: /submitQuestion
+                                    val response = RetrofitClient.cloudApiService.submitQuestion(questionData)
+                                    if (response.isSuccessful) {
+                                        // 서버가 200 응답을 보냈다면(캐시된 결과가 있을 경우)
+                                        withContext(Dispatchers.Main) {
                                             navController.navigate("loading/recommendAttraction")
-                                        } else {
-                                            Toast.makeText(context, "서버 전송 실패", Toast.LENGTH_SHORT)
-                                                .show()
+                                        }
+                                    } else if (response.code() == 202) {
+                                        // 비동기 작업 등록되어 task_id가 반환된 경우
+                                        val taskId = response.body()?.task_id ?: ""
+                                        // GET 요청으로 작업 상태 폴링
+                                        var taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                                        // 작업이 완료될 때까지 폴링 (예: 2초마다)
+                                        while (taskResponse.code() != 200) {
+                                            delay(2000)
+                                            taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                                        }
+                                        // 작업 완료 후
+                                        withContext(Dispatchers.Main) {
+                                            navController.navigate("loading/recommendAttraction")
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            Log.e("ServerError", "서버 응답 에러: ${response.code()}")
+                                            Toast.makeText(context, "서버 응답 에러: ${response.code()}", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 } catch (e: Exception) {
                                     Log.e("SendError", "전송 중 오류 발생: ${e.message}", e)
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(
-                                            context,
-                                            "전송 중 오류 발생: ${e.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(context, "전송 중 오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }

@@ -1,7 +1,9 @@
 package com.intel.NLPproject.api
 
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = "http://34.64.58.211:5000/"
@@ -13,4 +15,11 @@ object RetrofitClient {
             .build()
             .create(CloudApiService::class.java)
     }
+
+    val okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(500, TimeUnit.SECONDS)
+        .readTimeout(500, TimeUnit.SECONDS)
+        .writeTimeout(500, TimeUnit.SECONDS)
+        .build()
+
 }

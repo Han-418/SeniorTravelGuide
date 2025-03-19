@@ -333,7 +333,8 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                                         Image(
                                             painter = painterResource(R.drawable.location),
                                             contentDescription = "",
-                                            modifier = Modifier.size(60.dp)
+                                            modifier = Modifier
+                                                .size(60.dp)
                                                 .offset(x = (-10).dp)
                                         )
                                     }
@@ -394,7 +395,8 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                                     Image(
                                         painter = painterResource(R.drawable.wind2),
                                         contentDescription = "",
-                                        modifier = Modifier.size(200.dp)
+                                        modifier = Modifier
+                                            .size(200.dp)
                                             .offset(x = 5.dp, y = 5.dp)
                                     )
                                 }
@@ -690,7 +692,8 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
                                         Image(
                                             painter = painterResource(R.drawable.location),
                                             contentDescription = "",
-                                            modifier = Modifier.size(60.dp)
+                                            modifier = Modifier
+                                                .size(60.dp)
                                                 .offset(x = (-10).dp)
                                         )
                                     }
@@ -751,7 +754,8 @@ fun RecommendAttractionScreen2(navController: NavHostController) {
                                     Image(
                                         painter = painterResource(R.drawable.wind2),
                                         contentDescription = "",
-                                        modifier = Modifier.size(200.dp)
+                                        modifier = Modifier
+                                            .size(200.dp)
                                             .offset(x = 5.dp, y = 5.dp)
                                     )
                                 }

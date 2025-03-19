@@ -27,12 +27,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -72,9 +75,9 @@ fun QuestionScreen(navController: NavHostController) {
     val companionOptions = listOf(
         "혼자",
         "부부/커플",
-        "가족들과",
-        "부모님과",
-        "친구들과"
+        "가족들과 함께",
+        "부모님과 함께",
+        "친구들과 함께"
     )
     val transportationOptions = listOf(
         "자가용",
@@ -171,39 +174,45 @@ fun QuestionScreen(navController: NavHostController) {
                 // destination
                 1 -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -316,39 +325,45 @@ fun QuestionScreen(navController: NavHostController) {
                 // departure / return
                 2 -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     TravelPeriodQuestion(
@@ -361,39 +376,45 @@ fun QuestionScreen(navController: NavHostController) {
                 // companion
                 3 -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -494,39 +515,45 @@ fun QuestionScreen(navController: NavHostController) {
                 // transportation
                 4 -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(color = Color.LightGray)
+                            modifier = Modifier
+                                .background(color = Color.LightGray)
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -626,39 +653,45 @@ fun QuestionScreen(navController: NavHostController) {
                 // budget
                 5 -> {
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(start = 10.dp, end = 10.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
 
                         Column(
-                            modifier = Modifier.background(Color(0xFF0DBBCA))
+                            modifier = Modifier
+                                .background(Color(0xFF0DBBCA))
                                 .height(5.dp)
                                 .width(61.dp)
-                        ) {  }
+                        ) { }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -768,7 +801,7 @@ fun QuestionScreen(navController: NavHostController) {
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .width(160.dp)
-                    .height(40.dp)
+                    .height(45.dp)
                     .clickable {
                         if (currentStep == 1) {
                             navController.popBackStack()
@@ -824,8 +857,8 @@ fun QuestionScreen(navController: NavHostController) {
                     },
                     modifier = Modifier
                         .width(160.dp)
-                        .height(40.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(45.dp),
+                    shape = RoundedCornerShape(19.dp),
                 ) {
                     Text(
                         text = "AI 추천 받기",
@@ -842,7 +875,7 @@ fun QuestionScreen(navController: NavHostController) {
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .width(160.dp)
-                        .height(40.dp)
+                        .height(45.dp)
                         .clickable {
                             when (currentStep) {
                                 1 -> {
@@ -961,7 +994,12 @@ fun SubregionGrid(
                         ),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = subregions[i], fontSize = 16.sp, fontFamily = myFontFamily)
+                        Text(
+                            text = subregions[i],
+                            fontSize = 16.sp,
+                            fontFamily = myFontFamily,
+                            color = Color.White
+                        )
                     }
                 }
             }
@@ -995,7 +1033,12 @@ fun SubregionGrid(
                         ),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = subregions[i], fontSize = 16.sp, fontFamily = myFontFamily)
+                        Text(
+                            text = subregions[i],
+                            fontSize = 16.sp,
+                            fontFamily = myFontFamily,
+                            color = Color.White
+                        )
                     }
                 }
             }
@@ -1018,7 +1061,7 @@ fun TravelPeriodQuestion(
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(150.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1029,7 +1072,7 @@ fun TravelPeriodQuestion(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("출발", fontFamily = myFontFamily, fontSize = 40.sp)
-                Spacer(modifier = Modifier.height(64.dp))
+                Spacer(modifier = Modifier.height(68.dp))
                 Button(
                     onClick = { showDeparturePicker.value = true },
                     modifier = Modifier
@@ -1047,7 +1090,7 @@ fun TravelPeriodQuestion(
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("도착", fontFamily = myFontFamily, fontSize = 40.sp)
-                Spacer(modifier = Modifier.height(64.dp))
+                Spacer(modifier = Modifier.height(68.dp))
                 Button(
                     onClick = { showReturnPicker.value = true },
                     modifier = Modifier
@@ -1066,7 +1109,7 @@ fun TravelPeriodQuestion(
         }
     }
 
-// DatePickerDialog for 출발일
+    // DatePickerDialog for 출발일
     if (showDeparturePicker.value) {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(
@@ -1086,7 +1129,7 @@ fun TravelPeriodQuestion(
         datePickerDialog.show()
     }
 
-// DatePickerDialog for 도착일
+    // DatePickerDialog for 도착일
     if (showReturnPicker.value) {
         val calendar = Calendar.getInstance()
         val datePickerDialog = DatePickerDialog(

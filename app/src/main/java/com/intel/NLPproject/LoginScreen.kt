@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -241,13 +243,16 @@ fun PhoneLoginScreen(navController: NavController) {
     val name = remember { mutableStateOf("") }
     val birthDate = remember { mutableStateOf("") }
     val gender = remember { mutableStateOf("") }
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("전화번호 인증으로 로그인", fontSize = 30.sp)
+        Text("전화번호 인증으로 로그인", fontSize = 30.sp, fontFamily = myFontFamily)
         Spacer(modifier = Modifier.height(20.dp))
         // 전화번호 입력 필드
         OutlinedTextField(

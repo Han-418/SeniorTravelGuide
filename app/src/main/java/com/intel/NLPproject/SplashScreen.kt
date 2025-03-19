@@ -3,12 +3,16 @@ package com.intel.NLPproject
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
@@ -31,6 +35,10 @@ object AuthManager {
 @Composable
 fun SplashScreen(navController: NavController) {
     val context = LocalContext.current
+    val myFontFamily = FontFamily(
+        Font(R.font.notoserifkrblack)
+    )
+
     LaunchedEffect(Unit) {
         // 앱 시작 시 SharedPreferences에서 stable UID 복원
         TokenManager.kakaoAccessToken = loadStableUid(context, "kakao_stable_uid")
@@ -103,7 +111,12 @@ fun SplashScreen(navController: NavController) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "앱 로딩 중...", fontSize = 20.sp)
+        Text(
+            text = "앱 로딩 중...",
+            fontSize = 30.sp,
+            fontFamily = myFontFamily,
+            modifier = Modifier.offset(y = (-10).dp)
+        )
     }
 }
 

@@ -3,6 +3,7 @@ package com.intel.NLPproject
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -13,68 +14,58 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.intel.NLPproject.api.Recommendation
 import com.intel.NLPproject.api.RetrofitClient
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
 fun RecommendAttractionScreen(navController: NavHostController) {
-    var recommendations by remember { mutableStateOf<List<Recommendation>?>(null) }
+    var recommendations by remember { mutableStateOf<List<Recommendation>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
+    var currentPage by remember { mutableStateOf(1) }
+    val pageLimit = 10  // 서버에서 한 페이지 당 10개씩 반환한다고 가정
 
-    // 화면이 시작될 때 Retrofit 호출하여 추천 데이터 불러오기
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
+    val coroutineScope = rememberCoroutineScope()
+    val taskId = "이미 받은 taskId" // 이전 화면에서 받은 taskId를 활용
+
+    // 페이지네이션 함수: 특정 페이지 데이터를 불러옴
+    fun loadRecommendations(page: Int) {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
-                // 여기서는 QuestionScreen에서 전송했던 데이터와 동일하거나 저장된 데이터를 사용할 수 있습니다.
-                // 예시로 QuestionData를 새로 생성하거나, 이전에 저장한 값을 활용하세요.
-                val questionData = com.intel.NLPproject.api.QuestionData(
-                    selectedDestination = "제주도",
-                    selectedSubregion = "서귀포시",
-                    selectedCompanion = "친구들과",
-                    selectedTransportation = "버스",
-                    selectedBudget = "평균적",
-                    customDestinationText = "",
-                    customDestinationInput = "",
-                    selectedDeparture = "2024-03-20",
-                    selectedReturn = "2024-03-23"
-                )
-                // POST 요청: task_id를 받음
-                val submitResponse = RetrofitClient.cloudApiService.submitQuestion(questionData)
-                if (submitResponse.isSuccessful) {
-                    val taskId = submitResponse.body()?.task_id
-                    if (!taskId.isNullOrEmpty()) {
-                        // 작업 완료까지 폴링 (예: 2초마다 GET 요청)
-                        var taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
-                        while (taskResponse.code() != 200) {
-                            delay(2000)
-                            taskResponse = RetrofitClient.cloudApiService.getTaskStatus(taskId)
-                        }
-                        // GET 요청의 응답에서 recommendations를 가져옴
-                        recommendations = taskResponse.body()?.recommendations
+                val response = RetrofitClient.cloudApiService.getTaskStatus(taskId, page, pageLimit)
+                if (response.isSuccessful) {
+                    // 기존 추천 목록에 추가
+                    response.body()?.let { body ->
+                        val newRecs = body.recommendations ?: emptyList()
+                        recommendations = recommendations + newRecs
                     }
                 }
             } catch (e: Exception) {
                 println("Retrofit Error: ${e.message}")
+            } finally {
+                isLoading = false
             }
-            isLoading = false
         }
     }
 
+    // 화면 시작 시 1페이지 데이터 로드
+    LaunchedEffect(Unit) {
+        loadRecommendations(currentPage)
+    }
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (isLoading) {
+        if (isLoading && recommendations.isEmpty()) {
             CircularProgressIndicator()
         } else {
-            recommendations?.let { recList ->
+            Column(modifier = Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(recList.size) { index ->
-                        val rec = recList[index]
+                    items(recommendations.size) { index ->
+                        val rec = recommendations[index]
                         Column(
                             modifier = Modifier
                                 .padding(8.dp)
@@ -92,7 +83,20 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                         }
                     }
                 }
-            } ?: Text("추천 데이터를 불러올 수 없습니다.")
+                // "더 불러오기" 버튼을 클릭하면 다음 페이지를 로드
+                Button(
+                    onClick = {
+                        currentPage++
+                        isLoading = true
+                        loadRecommendations(currentPage)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text("더 불러오기")
+                }
+            }
         }
     }
 }

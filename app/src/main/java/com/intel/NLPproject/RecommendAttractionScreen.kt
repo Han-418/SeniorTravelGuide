@@ -406,13 +406,13 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(125.dp)
+                                .height(120.dp)
                                 .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
                                 .padding(4.dp),
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                "바람이 많이 불 것으로 예상되어 실내활동을 추천하는 함덕해수욕장은 부부와 함께하는 여행에 적합합니다.",
+                                "실외 시설이 갖춰진 함덕해수욕장은 부부와 함께하는 여행에 적합한 관광지입니다.",
                                 fontSize = 18.sp,
                                 fontFamily = myFontFamily,
                                 lineHeight = 24.sp,

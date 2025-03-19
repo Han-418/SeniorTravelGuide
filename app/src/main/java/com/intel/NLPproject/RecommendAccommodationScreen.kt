@@ -167,7 +167,7 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
-                                    contentDescription = "관광지 설명 보기"
+                                    contentDescription = "숙소 설명 보기"
                                 )
                             }
                         }

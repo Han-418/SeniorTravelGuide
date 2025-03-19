@@ -69,7 +69,7 @@ fun RecommendAccommodationScreen(navController: NavHostController) {
         "에가톳 캐빈" to R.drawable.egattot,
         "머큐어앰배서더 제주" to R.drawable.mercurejeju,
         "유탑유블레스호텔제주" to R.drawable.youtop,
-        "라마다 제주함덕호텔" to R.drawable.ramada,
+        "라마다 제주함덕호텔" to R.drawable.ramada
     )
 
     val context = LocalContext.current

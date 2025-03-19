@@ -66,6 +66,36 @@ import com.intel.NLPproject.firebase.RestaurantDatabase
 
 @Composable
 fun TravelPlanScreen(navController: NavHostController) {
+    val listOfAll = listOf(
+        // 관광지
+        "카멜리아 힐", "아쿠아플라넷 제주", "한라산", "새별오름", "함덕 해수욕장",
+        "용눈이오름", "큰엉해안경승지", "휴애리자연생활공원",
+        // 숙소
+        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔제주", "라마다 제주함덕호텔",
+        // 식당
+        "갈치옥 함덕", "백가네 제주 한상", "터틀리애", "동백국수"
+    )
+    val listOfAllImages = mapOf(
+        // 관광지
+        "카멜리아 힐" to R.drawable.camelliahill,
+        "아쿠아플라넷 제주" to R.drawable.aquaplanet,
+        "한라산" to R.drawable.hallamount,
+        "새별오름" to R.drawable.saebyul,
+        "함덕 해수욕장" to R.drawable.hamduk,
+        "용눈이오름" to R.drawable.yongnoone,
+        "큰엉해안경승지" to R.drawable.keunung,
+        "휴애리자연생활공원" to R.drawable.hueree,
+        // 숙소
+        "에가톳 캐빈" to R.drawable.egattot,
+        "머큐어앰배서더 제주" to R.drawable.mercurejeju,
+        "유탑유블레스호텔제주" to R.drawable.youtop,
+        "라마다 제주함덕호텔" to R.drawable.ramada,
+        // 식당
+        "갈치옥 함덕" to R.drawable.galchiok,
+        "백가네 제주 한상" to R.drawable.backga,
+        "터틀리애" to R.drawable.turtleliae,
+        "동백국수" to R.drawable.dongback
+    )
     val context = LocalContext.current
     // TokenManager를 통해 현재 사용자 UID 가져오기
     val userId = TokenManager.getCurrentUserId(context) ?: "defaultUserId"
@@ -240,6 +270,36 @@ fun DataGridSection(
     val myFontFamily = FontFamily(
         Font(R.font.notoserifkrblack)
     )
+    val listOfAll = listOf(
+        // 관광지
+        "카멜리아 힐", "아쿠아플라넷 제주", "한라산", "새별오름", "함덕 해수욕장",
+        "용눈이오름", "큰엉해안경승지", "휴애리자연생활공원",
+        // 숙소
+        "에가톳 캐빈", "머큐어앰배서더 제주", "유탑유블레스호텔제주", "라마다 제주함덕호텔",
+        // 식당
+        "갈치옥 함덕", "백가네 제주 한상", "터틀리애", "동백국수"
+    )
+    val listOfAllImages = mapOf(
+        // 관광지
+        "카멜리아 힐" to R.drawable.camelliahill,
+        "아쿠아플라넷 제주" to R.drawable.aquaplanet,
+        "한라산" to R.drawable.hallamount,
+        "새별오름" to R.drawable.saebyul,
+        "함덕 해수욕장" to R.drawable.hamduk,
+        "용눈이오름" to R.drawable.yongnoone,
+        "큰엉해안경승지" to R.drawable.keunung,
+        "휴애리자연생활공원" to R.drawable.hueree,
+        // 숙소
+        "에가톳 캐빈" to R.drawable.egattot,
+        "머큐어앰배서더 제주" to R.drawable.mercurejeju,
+        "유탑유블레스호텔제주" to R.drawable.youtop,
+        "라마다 제주함덕호텔" to R.drawable.ramada,
+        // 식당
+        "갈치옥 함덕" to R.drawable.galchiok,
+        "백가네 제주 한상" to R.drawable.backga,
+        "터틀리애" to R.drawable.turtleliae,
+        "동백국수" to R.drawable.dongback
+    )
 
     Column(modifier = modifier) {
         Text(
@@ -264,16 +324,19 @@ fun DataGridSection(
                 val columns = 2
                 val horizontalPadding = 32.dp  // Column의 양쪽 패딩 (16.dp * 2)
                 val spacing = 16.dp             // LazyVerticalGrid의 간격
-                // 사용 가능한 너비에서 패딩과 간격을 빼서 아이템 너비를 구함
                 val itemWidth = (maxWidth - horizontalPadding - spacing) / columns
-                // 아이템은 정사각형이므로 높이도 itemWidth
+
+                // 텍스트와 Spacer의 추가 높이 (필요에 따라 조절)
+                val extraHeight = 30.dp
+
+                // 각 아이템의 전체 높이는 카드의 높이(itemWidth) + extraHeight
                 val rowCount = kotlin.math.ceil(data.size / columns.toFloat()).toInt()
-                // 전체 그리드 높이: 각 행의 높이(itemWidth) + 행 사이 간격(행수 - 1)
-                val gridHeight = itemWidth * rowCount + spacing * (rowCount - 1) + 16.dp // 추가 여백
+                val gridHeight =
+                    (itemWidth + extraHeight) * rowCount + spacing * (rowCount - 1) + 16.dp // 추가 여백
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(columns),
-                    userScrollEnabled = false, // 내부 스크롤 비활성화
+                    userScrollEnabled = false,
                     modifier = Modifier
                         .height(gridHeight)
                         .padding(horizontal = 24.dp, vertical = 8.dp),
@@ -283,28 +346,36 @@ fun DataGridSection(
                     items(data.size) { index ->
                         val item = data[index]
                         val isSelected = selectedItems.contains(item)
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f),
-                            elevation = if (isSelected)
-                                CardDefaults.cardElevation(defaultElevation = 8.dp)
-                            else CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Box(
+                        Column {
+                            Text(
+                                text = item,
+                                fontFamily = myFontFamily,
+                                fontSize = 15.sp,
+                                color = Color.Black,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Card(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(if (isSelected) Color.LightGray else Color.White),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f),
+                                elevation = if (isSelected)
+                                    CardDefaults.cardElevation(defaultElevation = 8.dp)
+                                else CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                Text(text = item)
-                                IconButton(
-                                    onClick = { onIconClick(item) },
-                                    modifier = Modifier.align(Alignment.TopEnd)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(if (isSelected) Color.LightGray else Color.White),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "$title 설명 보기"
+                                    Image(
+                                        painter = painterResource(
+                                            id = listOfAllImages[item] ?: R.drawable.backlogo
+                                        ),
+                                        contentDescription = item,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
                                     )
                                 }
                             }

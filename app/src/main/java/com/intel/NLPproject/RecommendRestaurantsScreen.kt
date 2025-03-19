@@ -69,7 +69,7 @@ fun RecommendRestaurantsScreen(navController: NavHostController) {
         "갈치옥 함덕" to R.drawable.galchiok,
         "백가네 제주 한상" to R.drawable.backga,
         "터틀리애" to R.drawable.turtleliae,
-        "동백국수" to R.drawable.dongback,
+        "동백국수" to R.drawable.dongback
     )
     val context = LocalContext.current
 

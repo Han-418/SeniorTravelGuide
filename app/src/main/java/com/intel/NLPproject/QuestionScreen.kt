@@ -1,6 +1,7 @@
 package com.intel.NLPproject
 
 import android.app.DatePickerDialog
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -844,6 +845,7 @@ fun QuestionScreen(navController: NavHostController) {
                                         }
                                     }
                                 } catch (e: Exception) {
+                                    Log.e("SendError", "전송 중 오류 발생: ${e.message}", e)
                                     withContext(Dispatchers.Main) {
                                         Toast.makeText(
                                             context,

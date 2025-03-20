@@ -1076,9 +1076,9 @@ fun TravelPeriodQuestion(
                 Button(
                     onClick = { showDeparturePicker.value = true },
                     modifier = Modifier
-                        .padding(4.dp)
+                        .padding(2.dp)
                         .height(45.dp)
-                        .width(150.dp)
+                        .width(155.dp)
                 ) {
                     Text(
                         text = selectedDeparture.value?.toString() ?: "날짜 선택",
@@ -1094,9 +1094,9 @@ fun TravelPeriodQuestion(
                 Button(
                     onClick = { showReturnPicker.value = true },
                     modifier = Modifier
-                        .padding(4.dp)
+                        .padding(2.dp)
                         .height(45.dp)
-                        .width(150.dp)
+                        .width(155.dp)
                 ) {
                     Text(
                         text = selectedReturn.value?.toString() ?: "날짜 선택",

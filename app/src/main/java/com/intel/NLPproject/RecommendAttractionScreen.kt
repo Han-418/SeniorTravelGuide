@@ -18,85 +18,91 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun RecommendAttractionScreen(navController: NavHostController) {
+fun RecommendAttractionScreen(navController: NavHostController, taskId: String) {
     var recommendations by remember { mutableStateOf<List<Recommendation>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var currentPage by remember { mutableStateOf(1) }
-    val pageLimit = 10  // 서버에서 한 페이지 당 10개씩 반환한다고 가정
+    var pollingCount by remember { mutableStateOf(0) }  // 폴링 횟수
+    val maxPollingAttempts = 10  // 최대 폴링 횟수
+    val pollingIntervalMs = 5000L  // 폴링 주기 (1000L = 1초)
 
     val coroutineScope = rememberCoroutineScope()
-    val taskId = "이미 받은 taskId" // 이전 화면에서 받은 taskId를 활용
 
-    // 페이지네이션 함수: 특정 페이지 데이터를 불러옴
-    fun loadRecommendations(page: Int) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val response = RetrofitClient.cloudApiService.getTaskStatus(taskId, page, pageLimit)
-                if (response.isSuccessful) {
-                    // 기존 추천 목록에 추가
-                    response.body()?.let { body ->
-                        val newRecs = body.recommendations ?: emptyList()
-                        recommendations = recommendations + newRecs
+    LaunchedEffect(taskId) {
+        // 폴링을 수행하는 함수
+        fun pollTaskStatus() {
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    val response = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                    if (response.isSuccessful && response.code() == 200) {
+                        // Celery 작업 완료. 결과 데이터를 받아온다.
+                        val body = response.body()
+                        val newRecs = body?.recommendations ?: emptyList()
+                        recommendations = newRecs
+                        isLoading = false
+                    } else if (response.code() == 202) {
+                        // 아직 작업 중이면 일정 시간 후 재시도
+                        if (pollingCount < maxPollingAttempts) {
+                            pollingCount++
+                            kotlinx.coroutines.delay(pollingIntervalMs)
+                            pollTaskStatus() // 재귀 호출
+                        } else {
+                            isLoading = false
+                        }
+                    } else {
+                        isLoading = false
                     }
+                } catch (e: Exception) {
+                    isLoading = false
+                    println("Retrofit Error: ${e.message}")
                 }
-            } catch (e: Exception) {
-                println("Retrofit Error: ${e.message}")
-            } finally {
-                isLoading = false
             }
         }
+
+        // 화면이 뜨면 바로 폴링 시작
+        pollTaskStatus()
     }
 
-    // 화면 시작 시 1페이지 데이터 로드
-    LaunchedEffect(Unit) {
-        loadRecommendations(currentPage)
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (isLoading && recommendations.isEmpty()) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
             CircularProgressIndicator()
         } else {
-            Column(modifier = Modifier.fillMaxSize()) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(recommendations.size) { index ->
-                        val rec = recommendations[index]
-                        Column(
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = rec.attraction_name,
-                                fontSize = 18.sp
-                            )
-                            Text(
-                                text = rec.short_review,
-                                fontSize = 14.sp
-                            )
+            if (recommendations.isEmpty()) {
+                Text("추천 결과가 없습니다.")
+            } else {
+                // 추천 목록 표시
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(recommendations.size) { index ->
+                            val rec = recommendations[index]
+                            Column(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = rec.attraction_name,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    text = rec.short_review,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
-                }
-                // "더 불러오기" 버튼을 클릭하면 다음 페이지를 로드
-                Button(
-                    onClick = {
-                        currentPage++
-                        isLoading = true
-                        loadRecommendations(currentPage)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text("더 불러오기")
                 }
             }
         }
     }
 }
+

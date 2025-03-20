@@ -85,7 +85,14 @@ fun MyApp(navController: NavHostController) {
         }
         composable("phoneLogin") { PhoneLoginScreen(navController) }
         composable("main") { MainScreen(navController) }
-        composable("recommendAttraction") { RecommendAttractionScreen(navController) }
+        //composable("recommendAttraction") { RecommendAttractionScreen(navController) }
+        composable(
+            route = "recommendAttraction/{taskId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+            RecommendAttractionScreen(navController, taskId)
+        }
         composable("recommendAccommodation") { RecommendAccommodationScreen(navController) }
         composable("recommendRestaurants") { RecommendRestaurantsScreen(navController) }
         composable("attractionPreference") { AttractionPreferenceScreen(navController) }
@@ -103,6 +110,7 @@ fun MyApp(navController: NavHostController) {
         composable("first") { FirstScreen(navController) }
         composable("question") { QuestionScreen(navController) }
         composable("detailPlan") { DetailPlanScreen(navController) }
+
     }
 }
 

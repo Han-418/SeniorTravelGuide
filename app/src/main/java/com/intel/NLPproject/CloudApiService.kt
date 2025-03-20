@@ -26,7 +26,7 @@ data class Recommendation(
     val average_sentiment_score: Double,
     val short_review: String,
     val image_url: String,
-    val address : String,
+    val address: String,
 )
 
 // 서버 응답 모델

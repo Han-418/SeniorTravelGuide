@@ -1,6 +1,7 @@
 package com.intel.NLPproject
 
 import android.app.DatePickerDialog
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -57,6 +58,7 @@ import androidx.navigation.NavHostController
 import com.intel.NLPproject.api.QuestionData
 import com.intel.NLPproject.api.RetrofitClient
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -832,24 +834,31 @@ fun QuestionScreen(navController: NavHostController) {
                             // IO 디스패처에서 네트워크 요청 실행
                             coroutineScope.launch(Dispatchers.IO) {
                                 try {
-                                    val response =
-                                        RetrofitClient.cloudApiService.submitQuestion(questionData)
-                                    withContext(Dispatchers.Main) {
-                                        if (response.isSuccessful) {
-                                            // 성공 시 다음 화면으로 이동
+                                    // POST 요청: /submitQuestion
+                                    val response = RetrofitClient.cloudApiService.submitQuestion(questionData)
+                                    if (response.isSuccessful) {
+                                        // 서버가 200 응답을 보냈다면(캐시된 결과가 있을 경우)
+                                        withContext(Dispatchers.Main) {
                                             navController.navigate("loading/recommendAttraction")
-                                        } else {
-                                            Toast.makeText(context, "서버 전송 실패", Toast.LENGTH_SHORT)
-                                                .show()
+                                        }
+                                        // 서버에서 taskId를 받아옴
+                                        val taskId = response.body()?.task_id ?: ""
+                                        withContext(Dispatchers.Main) {
+                                            // taskId를 네비게이션 인자로 전달하여 RecommendAttractionScreen으로 이동
+                                            navController.navigate("recommendAttraction/$taskId")
+                                        }
+                                    } else {
+                                        withContext(Dispatchers.Main) {
+                                            Log.e("ServerError", "서버 응답 에러: ${response.code()}")
+                                            Toast.makeText(context, "서버 응답 에러: ${response.code()}",
+                                                Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 } catch (e: Exception) {
+                                    Log.e("SendError", "전송 중 오류 발생: ${e.message}", e)
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(
-                                            context,
-                                            "전송 중 오류 발생: ${e.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        Toast.makeText(context, "전송 중 오류 발생: ${e.message}",
+                                            Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }

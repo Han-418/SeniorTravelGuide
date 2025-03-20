@@ -77,4 +77,7 @@ dependencies {
     // naver login
     implementation("com.navercorp.nid:oauth:5.10.0") // jdk 11
     implementation ("androidx.compose.material:material-icons-extended:1.3.1")
+
+    // coil
+    implementation("io.coil-kt:coil-compose:2.2.2")
 }

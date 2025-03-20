@@ -59,11 +59,12 @@ fun RecommendAttractionScreen(navController: NavHostController, taskId: String) 
                 try {
                     val response = RetrofitClient.cloudApiService.getTaskStatus(taskId)
                     if (response.isSuccessful && response.code() == 200) {
+                        // Celery 작업 완료. 결과 데이터를 받아온다.
                         val body = response.body()
                         recommendations = body?.recommendations ?: emptyList()
                         isLoading = false
                     } else if (response.code() == 202) {
-                        // 작업 진행 중: 재시도
+                        // 아직 작업 중이면 일정 시간 후 재시도
                         if (pollingCount < maxPollingAttempts) {
                             pollingCount++
                             delay(pollingIntervalMs)

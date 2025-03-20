@@ -17,7 +17,7 @@ data class QuestionData(
     val customDestinationText: String,
     val customDestinationInput: String,
     val selectedDeparture: String,
-    val selectedReturn: String
+    val selectedReturn: String,
 )
 
 // 추천 결과 데이터 모델
@@ -25,7 +25,8 @@ data class Recommendation(
     val attraction_name: String,
     val average_sentiment_score: Double,
     val short_review: String,
-    val image_url: String
+    val image_url: String,
+    val address : String,
 )
 
 // 서버 응답 모델

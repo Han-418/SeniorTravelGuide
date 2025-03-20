@@ -5,21 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -27,21 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,46 +28,71 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.intel.NLPproject.TokenManager.getCurrentUserId
+import com.intel.NLPproject.api.Recommendation
+import com.intel.NLPproject.api.RetrofitClient
 import com.intel.NLPproject.firebase.AttractionDatabase
-
-// 데이터 클래스는 WebCrawlApiService.kt에 정의되어 있음
-// data class WebCrawlResponse(val query: String, val results: List<CrawlResult>)
-// data class CrawlResult(val title: String, val description: String)
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import coil.compose.AsyncImage // 네트워크 이미지를 로딩하기 위한 Coil 라이브러리 (프로젝트에 추가되어 있어야 함)
 
 @Composable
-fun RecommendAttractionScreen(navController: NavHostController) {
+fun RecommendAttractionScreen(navController: NavHostController, taskId: String) {
+    // 서버로부터 받은 추천 결과 (Recommendation: attraction_name, average_sentiment_score, short_review, image_url)
+    var recommendations by remember { mutableStateOf<List<Recommendation>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var pollingCount by remember { mutableStateOf(0) }
+    val maxPollingAttempts = 20           // 최대 폴링 횟수
+    val pollingIntervalMs = 5000L         // 폴링 주기 (1초=1000L)
+    val coroutineScope = rememberCoroutineScope()
+
+    // 선택된 추천 항목 (다중 선택 가능)
+    val selectedRecommendations = remember { mutableStateListOf<Recommendation>() }
+    // 상세 설명 다이얼로그를 위한 현재 선택 Recommendation
+    var currentRecommendation by remember { mutableStateOf<Recommendation?>(null) }
     var showDescriptionDialog by remember { mutableStateOf(false) }
-    var currentDescription by remember { mutableStateOf("") }
-    // 예시 관광지 추천 목록 (10개)
-    val attractions = listOf(
-//        "예시 1", "예시 2", "예시 3", "예시 4", "예시 5", "예시 6"
-        "카멜리아 힐", "아쿠아플라넷 제주", "한라산", "새별오름", "함덕 해수욕장",
-        "용눈이오름", "큰엉해안경승지", "휴애리자연생활공원"
-    )
-    val attractionImages = mapOf(
-        "카멜리아 힐" to R.drawable.camelliahill,
-        "아쿠아플라넷 제주" to R.drawable.aquaplanet,
-        "한라산" to R.drawable.hallamount,
-        "새별오름" to R.drawable.saebyul,
-        "함덕 해수욕장" to R.drawable.hamduk,
-        "용눈이오름" to R.drawable.yongnoone,
-        "큰엉해안경승지" to R.drawable.keunung,
-        "휴애리자연생활공원" to R.drawable.hueree
-    )
+
+    // 폴링 로직: taskId를 사용하여 서버에서 작업 결과를 받아옴.
+    LaunchedEffect(taskId) {
+        fun pollTaskStatus() {
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    val response = RetrofitClient.cloudApiService.getTaskStatus(taskId)
+                    if (response.isSuccessful && response.code() == 200) {
+                        val body = response.body()
+                        recommendations = body?.recommendations ?: emptyList()
+                        isLoading = false
+                    } else if (response.code() == 202) {
+                        // 작업 진행 중: 재시도
+                        if (pollingCount < maxPollingAttempts) {
+                            pollingCount++
+                            delay(pollingIntervalMs)
+                            pollTaskStatus() // 재귀 호출
+                        } else {
+                            isLoading = false
+                        }
+                    } else {
+                        isLoading = false
+                    }
+                } catch (e: Exception) {
+                    isLoading = false
+                    println("Retrofit Error: ${e.message}")
+                }
+            }
+        }
+        pollTaskStatus()
+    }
+
+    // 기존의 폰트 설정
+    val myFontFamily = FontFamily(Font(R.font.notoserifkrblack))
     val context = LocalContext.current
 
-    // 선택된 관광지를 저장할 상태 (다중 선택 가능)
-    val selectedAttractions = remember { mutableStateListOf<String>() }
-    val myFontFamily = FontFamily(
-        Font(R.font.notoserifkrblack)
-    )
-
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+        // 상단 헤더 영역
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,88 +109,102 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                 modifier = Modifier.offset(y = (-8).dp)
             )
         }
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .height(550.dp)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(attractions.size) { index ->
-                val attraction = attractions[index]
-                // 선택 상태 여부
-                val isSelected = selectedAttractions.contains(attraction)
-                Column {
-                    Text(
-                        text = attraction,
-                        fontFamily = myFontFamily,
-                        fontSize = 17.sp,
-                        color = Color.Black,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clickable {
-                                if (isSelected) {
-                                    selectedAttractions.remove(attraction)
-                                } else {
-                                    selectedAttractions.add(attraction)
-                                }
-                            }
-                            .border(
-                                width = 3.dp,
-                                color = if (isSelected) Color(0xFFF20574) else Color.Transparent,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                        // 선택 상태일 때 테두리나 elevation을 달리 할 수 있음.
-                        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 8.dp)
-                        else CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(if (isSelected) Color.LightGray else Color.White),
-                            contentAlignment = Alignment.Center
-                        ) {
-//                        Text(text = attraction)
-                            Image(
-                                painter = painterResource(
-                                    id = attractionImages[attraction] ?: R.drawable.backlogo
-                                ),
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+
+        // 로딩 중이면 진행 표시기, 데이터가 없으면 메시지, 데이터가 있으면 추천 목록 표시
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            if (recommendations.isEmpty()) {
+                Text("추천 결과가 없습니다.")
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .height(550.dp)
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(recommendations.size) { index ->
+                        val rec = recommendations[index]
+                        // 각 카드 클릭 시 선택 토글 (selectedRecommendations)와 상세보기 다이얼로그 열기
+                        val isSelected = selectedRecommendations.contains(rec)
+                        Column {
+                            Text(
+                                text = rec.attraction_name,
+                                fontFamily = myFontFamily,
+                                fontSize = 17.sp,
+                                color = Color.Black,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
-                            IconButton(
-                                onClick = {
-                                    currentDescription = attraction
-                                    showDescriptionDialog = true
-                                },
-                                modifier = Modifier.align(Alignment.TopEnd)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .clickable {
+                                        if (isSelected) {
+                                            selectedRecommendations.remove(rec)
+                                        } else {
+                                            selectedRecommendations.add(rec)
+                                        }
+                                    }
+                                    .border(
+                                        width = 3.dp,
+                                        color = if (isSelected) Color(0xFFF20574) else Color.Transparent,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ),
+                                elevation = if (isSelected)
+                                    CardDefaults.cardElevation(defaultElevation = 8.dp)
+                                else CardDefaults.cardElevation(defaultElevation = 4.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "관광지 설명 보기"
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(if (isSelected) Color.LightGray else Color.White),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // 네트워크 이미지 로딩: 서버에서 받은 image_url 사용 (실패 시 placeholder 처리)
+                                    AsyncImage(
+                                        model = rec.image_url,
+                                        contentDescription = rec.attraction_name,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    // 우측 상단 아이콘 버튼: 상세 설명 다이얼로그 표시
+                                    IconButton(
+                                        onClick = {
+                                            currentRecommendation = rec
+                                            showDescriptionDialog = true
+                                        },
+                                        modifier = Modifier.align(Alignment.TopEnd)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "관광지 설명 보기"
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
+        // 하단 버튼 영역
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Bottom
         ) {
             Button(
-                onClick = {
-                    navController.navigate("attractionPreference")
-                },
+                onClick = { navController.navigate("attractionPreference") },
                 modifier = Modifier
                     .width(160.dp)
                     .height(45.dp),
@@ -209,10 +221,11 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                 onClick = {
                     val currentUserId = getCurrentUserId(context)
                     if (currentUserId != null) {
-                        if (selectedAttractions.isNotEmpty()) {
+                        if (selectedRecommendations.isNotEmpty()) {
+                            // 서버에서 받은 추천 결과의 attraction_name 리스트 저장
                             AttractionDatabase.saveAttractions(
                                 currentUserId,
-                                selectedAttractions
+                                selectedRecommendations.map { it.attraction_name }
                             ) { success ->
                                 if (success) {
                                     Toast.makeText(context, "관광지 정보 저장 완료", Toast.LENGTH_SHORT)
@@ -256,14 +269,10 @@ fun RecommendAttractionScreen(navController: NavHostController) {
                 modifier = Modifier
                     .width(160.dp)
                     .height(45.dp)
-                    .clickable {
-                        navController.popBackStack()
-                    }
+                    .clickable { navController.popBackStack() }
             )
             Button(
-                onClick = {
-                    navController.navigate("first")
-                },
+                onClick = { navController.navigate("first") },
                 modifier = Modifier
                     .width(160.dp)
                     .height(45.dp),
@@ -278,523 +287,161 @@ fun RecommendAttractionScreen(navController: NavHostController) {
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        // 관광지 설명 다이얼로그
-        if (showDescriptionDialog) {
-            AlertDialog(
-                onDismissRequest = { showDescriptionDialog = false },
-                title = { Text(currentDescription, fontSize = 30.sp, fontFamily = myFontFamily) },
-                text = {
-                    Column(
-                        modifier = Modifier
-                            .height(500.dp)
-                            .padding(top = 8.dp, bottom = 2.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
+        // 상세 설명 다이얼로그 (AlertDialog)
+        currentRecommendation?.let { rec ->
+            if (showDescriptionDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDescriptionDialog = false },
+                    title = {
+                        Text(rec.attraction_name, fontSize = 30.sp, fontFamily = myFontFamily)
+                    },
+                    text = {
                         Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
+                                .height(500.dp)
+                                .padding(top = 8.dp, bottom = 2.dp)
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Image(
-                                painter = painterResource(
-                                    id = attractionImages[currentDescription] ?: R.drawable.backlogo
-                                ),
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
-                        ) {
+                            // 상단 이미지 영역 (네트워크 이미지 사용)
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .fillMaxHeight(0.3f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                                    .height(260.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
                             ) {
-                                Row() {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .fillMaxWidth(0.2f),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.location),
-                                            contentDescription = "",
-                                            modifier = Modifier
-                                                .size(60.dp)
-                                                .offset(x = (-10).dp)
-                                        )
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .fillMaxWidth(0.8f),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            "제주도 제주시 조천읍 함덕리 산14-1",
-                                            fontFamily = myFontFamily,
-                                            fontSize = 17.sp,
-                                            lineHeight = 19.sp
-                                        )
-
-                                    }
-                                }
+                                AsyncImage(
+                                    model = rec.image_url,
+                                    contentDescription = "",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop,
+                                )
                             }
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Divider(
-                                thickness = 1.dp,
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Row(
+                            Spacer(modifier = Modifier.height(12.dp))
+                            // 중간 정보 영역: 위치, 평점, 날씨 등 (일부는 고정 텍스트)
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .fillMaxHeight(0.7f),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .height(180.dp)
+                                    .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
                             ) {
                                 Column(
                                     modifier = Modifier
-                                        .width(130.dp)
-                                        .fillMaxHeight(),
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.3f),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Top
+                                    verticalArrangement = Arrangement.Center
                                 ) {
-                                    // 평점
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                    Text("평점", fontFamily = myFontFamily, fontSize = 22.sp)
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text("7.0 / 10", fontSize = 22.sp, fontFamily = myFontFamily)
+                                    Row {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .fillMaxWidth(0.2f),
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.Start
+                                        ) {
+                                            Image(
+                                                painter = painterResource(R.drawable.location),
+                                                contentDescription = "",
+                                                modifier = Modifier
+                                                    .size(60.dp)
+                                                    .offset(x = (-10).dp)
+                                            )
+                                        }
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .fillMaxWidth(0.8f),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                rec.address,
+                                                fontFamily = myFontFamily,
+                                                fontSize = 17.sp,
+                                                lineHeight = 19.sp
+                                            )
+                                        }
+                                    }
                                 }
-                                Column(
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Divider(thickness = 1.dp, color = Color.Black)
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Row(
                                     modifier = Modifier
-                                        .width(130.dp)
-                                        .fillMaxHeight(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Top
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.7f),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // 날씨
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                    Text("날씨", fontFamily = myFontFamily, fontSize = 22.sp)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Image(
-                                        painter = painterResource(R.drawable.wind2),
-                                        contentDescription = "",
+                                    Column(
                                         modifier = Modifier
-                                            .size(200.dp)
-                                            .offset(x = 5.dp, y = 5.dp)
-                                    )
+                                            .width(130.dp)
+                                            .fillMaxHeight(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Top
+                                    ) {
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text("평점", fontFamily = myFontFamily, fontSize = 22.sp)
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text("${rec.average_sentiment_score} / 10", fontSize = 22.sp, fontFamily = myFontFamily)
+                                    }
+                                    Column(
+                                        modifier = Modifier
+                                            .width(130.dp)
+                                            .fillMaxHeight(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Top
+                                    ) {
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text("날씨", fontFamily = myFontFamily, fontSize = 22.sp)
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Image(
+                                            painter = painterResource(R.drawable.wind2),
+                                            contentDescription = "",
+                                            modifier = Modifier
+                                                .size(200.dp)
+                                                .offset(x = 5.dp, y = 5.dp)
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp)
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
-                                .padding(4.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                "실외 시설이 갖춰진 함덕해수욕장은 부부와 함께하는 여행에 적합한 관광지입니다.",
-                                fontSize = 18.sp,
-                                fontFamily = myFontFamily,
-                                lineHeight = 24.sp,
-                                letterSpacing = 0.8.sp,
+                            Spacer(modifier = Modifier.height(12.dp))
+                            // 하단 설명 영역: 서버에서 받은 short_review 출력
+                            Column(
                                 modifier = Modifier
-                                    .padding(4.dp)
-                                    .padding(start = 2.dp, end = 2.dp)
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = { showDescriptionDialog = false }
-                    ) {
-                        Text("닫기")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 2.dp, bottom = 2.dp),
-                containerColor = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-fun RecommendAttractionScreen2(navController: NavHostController) {
-    var showDescriptionDialog by remember { mutableStateOf(false) }
-    var currentDescription by remember { mutableStateOf("") }
-    // 예시 관광지 추천 목록 (10개)
-    val attractions = listOf(
-//        "예시 1", "예시 2", "예시 3", "예시 4", "예시 5", "예시 6"
-        "카멜리아 힐", "아쿠아플라넷 제주", "새별오름", "함덕 해수욕장",
-        "휴애리자연생활공원"
-    )
-    val attractionImages = mapOf(
-        "카멜리아 힐" to R.drawable.camelliahill,
-        "아쿠아플라넷 제주" to R.drawable.aquaplanet,
-        "새별오름" to R.drawable.saebyul,
-        "함덕 해수욕장" to R.drawable.hamduk,
-        "휴애리자연생활공원" to R.drawable.hueree
-    )
-
-    val context = LocalContext.current
-
-    // 선택된 관광지를 저장할 상태 (다중 선택 가능)
-    val selectedAttractions = remember { mutableStateListOf<String>() }
-    val myFontFamily = FontFamily(
-        Font(R.font.notoserifkrblack)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(82.dp)
-                .background(color = Color(0xFFFFA700)),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Text(
-                "관광지 추천 목록",
-                fontSize = 28.sp,
-                fontFamily = myFontFamily,
-                color = Color.Black,
-                modifier = Modifier.offset(y = (-8).dp)
-            )
-        }
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .height(550.dp)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(attractions.size) { index ->
-                val attraction = attractions[index]
-                // 선택 상태 여부
-                val isSelected = selectedAttractions.contains(attraction)
-                Column {
-                    Text(
-                        text = attraction,
-                        fontFamily = myFontFamily,
-                        fontSize = 17.sp,
-                        color = Color.Black,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clickable {
-                                if (isSelected) {
-                                    selectedAttractions.remove(attraction)
-                                } else {
-                                    selectedAttractions.add(attraction)
-                                }
-                            }
-                            .border(
-                                width = 3.dp,
-                                color = if (isSelected) Color(0xFFF20574) else Color.Transparent,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                        // 선택 상태일 때 테두리나 elevation을 달리 할 수 있음.
-                        elevation = if (isSelected) CardDefaults.cardElevation(defaultElevation = 8.dp)
-                        else CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(if (isSelected) Color.LightGray else Color.White),
-                            contentAlignment = Alignment.Center
-                        ) {
-//                        Text(text = attraction)
-                            Image(
-                                painter = painterResource(
-                                    id = attractionImages[attraction] ?: R.drawable.backlogo
-                                ),
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                            IconButton(
-                                onClick = {
-                                    currentDescription = attraction
-                                    showDescriptionDialog = true
-                                },
-                                modifier = Modifier.align(Alignment.TopEnd)
+                                    .fillMaxWidth()
+                                    .height(125.dp)
+                                    .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
+                                    .padding(4.dp),
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "관광지 설명 보기"
+                                Text(
+                                    rec.short_review,
+                                    fontSize = 18.sp,
+                                    fontFamily = myFontFamily,
+                                    lineHeight = 24.sp,
+                                    letterSpacing = 0.8.sp,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .padding(start = 2.dp, end = 2.dp)
                                 )
                             }
                         }
-                    }
-                }
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Button(
-                onClick = {
-                    val currentUserId = getCurrentUserId(context)
-                    if (currentUserId != null) {
-                        if (selectedAttractions.isNotEmpty()) {
-                            AttractionDatabase.saveAttractions(
-                                currentUserId,
-                                selectedAttractions
-                            ) { success ->
-                                if (success) {
-                                    Toast.makeText(context, "관광지 정보 저장 완료", Toast.LENGTH_SHORT)
-                                        .show()
-                                    navController.navigate("accommodationPreference")
-                                } else {
-                                    Toast.makeText(context, "관광지 정보 저장 실패", Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-                            }
-                        } else {
-                            Toast.makeText(context, "선택된 관광지가 없습니다.", Toast.LENGTH_SHORT).show()
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showDescriptionDialog = false }) {
+                            Text("닫기")
                         }
-                    } else {
-                        Toast.makeText(context, "로그인된 유저가 없습니다", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier
-                    .width(330.dp)
-                    .height(45.dp),
-                shape = RoundedCornerShape(19.dp)
-            ) {
-                Text(
-                    "관광지 확정",
-                    fontSize = 19.sp,
-                    fontFamily = myFontFamily,
-                    modifier = Modifier.offset(y = (-2).dp)
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 2.dp, bottom = 2.dp),
+                    containerColor = Color.White
                 )
             }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Image(
-                painter = painterResource(R.drawable.back),
-                contentDescription = "back",
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .width(160.dp)
-                    .height(45.dp)
-                    .clickable {
-                        navController.popBackStack()
-                    }
-            )
-            Button(
-                onClick = {
-                    navController.navigate("first")
-                },
-                modifier = Modifier
-                    .width(160.dp)
-                    .height(45.dp),
-                shape = RoundedCornerShape(19.dp)
-            ) {
-                Text(
-                    text = "메인화면으로",
-                    fontSize = 19.sp,
-                    fontFamily = myFontFamily,
-                    modifier = Modifier.offset(y = (-2).dp)
-                )
-            }
-        }
-        if (showDescriptionDialog) {
-            AlertDialog(
-                onDismissRequest = { showDescriptionDialog = false },
-                title = { Text(currentDescription, fontSize = 30.sp, fontFamily = myFontFamily) },
-                text = {
-                    Column(
-                        modifier = Modifier
-                            .height(500.dp)
-                            .padding(top = 8.dp, bottom = 2.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
-                        ) {
-                            Image(
-                                painter = painterResource(
-                                    id = attractionImages[currentDescription] ?: R.drawable.backlogo
-                                ),
-                                contentDescription = "",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(0.3f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Row() {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .fillMaxWidth(0.2f),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        Image(
-                                            painter = painterResource(R.drawable.location),
-                                            contentDescription = "",
-                                            modifier = Modifier
-                                                .size(60.dp)
-                                                .offset(x = (-10).dp)
-                                        )
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .fillMaxWidth(0.8f),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            "제주도 제주시 조천읍 함덕리 산14-1",
-                                            fontFamily = myFontFamily,
-                                            fontSize = 17.sp,
-                                            lineHeight = 19.sp
-                                        )
-
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Divider(
-                                thickness = 1.dp,
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.height(5.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(0.7f),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .width(130.dp)
-                                        .fillMaxHeight(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Top
-                                ) {
-                                    // 평점
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                    Text("평점", fontFamily = myFontFamily, fontSize = 22.sp)
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text("7.0 / 10", fontSize = 22.sp, fontFamily = myFontFamily)
-                                }
-                                Column(
-                                    modifier = Modifier
-                                        .width(130.dp)
-                                        .fillMaxHeight(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Top
-                                ) {
-                                    // 날씨
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                    Text("날씨", fontFamily = myFontFamily, fontSize = 22.sp)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Image(
-                                        painter = painterResource(R.drawable.wind2),
-                                        contentDescription = "",
-                                        modifier = Modifier
-                                            .size(200.dp)
-                                            .offset(x = 5.dp, y = 5.dp)
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(125.dp)
-                                .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
-                                .padding(4.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                "바람이 많이 불 것으로 예상되어 실내활동을 추천하는 함덕해수욕장은 부부와 함께하는 여행에 적합합니다.",
-                                fontSize = 18.sp,
-                                fontFamily = myFontFamily,
-                                lineHeight = 24.sp,
-                                letterSpacing = 0.8.sp,
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .padding(start = 2.dp, end = 2.dp)
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = { showDescriptionDialog = false }
-                    ) {
-                        Text("닫기")
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 2.dp, bottom = 2.dp),
-                containerColor = Color.White
-            )
         }
     }
 }

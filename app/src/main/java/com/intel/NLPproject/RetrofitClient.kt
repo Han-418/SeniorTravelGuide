@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://34.64.58.211:5000/"
+    private const val BASE_URL = "http://34.64.235.112:5000/"
 
     val cloudApiService: CloudApiService by lazy {
         Retrofit.Builder()
@@ -23,3 +23,4 @@ object RetrofitClient {
         .build()
 
 }
+
